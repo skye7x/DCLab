@@ -206,6 +206,8 @@ func show_workspace(project_name: String = "") -> void:
 	view_menu.add_separator()
 	view_menu.add_item("Zoom to Fit", 2)
 	view_menu.add_item("Reset View", 3)
+	view_menu.add_separator()
+	view_menu.add_item("Auto Layout", 4)
 	view_menu.id_pressed.connect(_on_view_menu_pressed)
 	_menu_bar.add_child(view_menu)
 	
@@ -393,6 +395,9 @@ func _on_view_menu_pressed(id: int) -> void:
 		3:
 			if _workspace and "_camera" in _workspace and _workspace._camera:
 				_workspace._camera.reset_view()
+		4:
+			if _workspace and _workspace.has_method("auto_layout"):
+				_workspace.auto_layout()
 
 func _on_tools_menu_pressed(id: int) -> void:
 	match id:

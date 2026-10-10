@@ -378,6 +378,46 @@ func _open_link_config(link_id: String) -> void:
 		win.setup(link_id)
 	win.popup_centered()
 
+func auto_layout() -> void:
+	if SimEngine.get_device_count() == 0:
+		return
+	# Layered layout by device type: routers top, switches below, then endpoints
+	var layers: Dictionary = {
+		"router": [],
+		"firewall": [],
+		"switch": [],
+		"server": [],
+		"storage": [],
+		"pc": [],
+		"generic": []
+	}
+	for dev in SimEngine.get_all_devices():
+		var t = dev.device_type
+		if not layers.has(t):
+			t = "generic"
+		layers[t].append(dev)
+	var layer_order = ["router", "firewall", "switch", "server", "storage", "pc", "generic"]
+	var y = 200.0
+	var x_spacing = 220.0
+	for layer_type in layer_order:
+		var devs = layers[layer_type]
+		if devs.is_empty():
+			continue
+		var total_w = (devs.size() - 1) * x_spacing
+		var x = -total_w / 2.0
+		for dev in devs:
+			dev.position = Vector2(x, y)
+			if device_nodes.has(dev.id):
+				device_nodes[dev.id].position = dev.position
+			x += x_spacing
+		y += 180.0
+	# Refresh connection lines
+	for link_id in connection_lines:
+		var cline = connection_lines[link_id]
+		if cline:
+			cline.update_positions()
+	zoom_to_fit()
+
 func zoom_to_fit() -> void:
 	if device_nodes.is_empty():
 		if _camera:

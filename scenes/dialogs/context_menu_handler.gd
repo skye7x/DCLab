@@ -57,6 +57,8 @@ func show_workspace_menu(screen_pos: Vector2) -> void:
 	_popup.add_item("Zoom to Fit", 21)
 	_popup.add_item("Toggle Grid", 22)
 	_popup.add_item("Toggle Snap to Grid", 23)
+	_popup.add_separator()
+	_popup.add_item("Auto Layout", 24)
 	_popup.position = Vector2i(int(screen_pos.x), int(screen_pos.y))
 	_popup.popup()
 
@@ -159,6 +161,9 @@ func _on_menu_item_selected(id: int) -> void:
 		23: # Toggle Snap
 			if _workspace_ref and _workspace_ref.has_method("toggle_snap"):
 				_workspace_ref.toggle_snap()
+		24: # Auto Layout
+			if _workspace_ref and _workspace_ref.has_method("auto_layout"):
+				_workspace_ref.auto_layout()
 
 func _open_terminal(device_id: String) -> void:
 	var tree = Engine.get_main_loop()
