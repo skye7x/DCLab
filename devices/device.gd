@@ -9,6 +9,7 @@ var is_enabled: bool = true
 var is_powered_on: bool = true
 var network_interfaces: Dictionary = {}
 var metadata: Dictionary = {}
+var arp_table: ArpTable = ArpTable.new()
 
 func _init(p_id: String = "", p_name: String = "Device", p_type: String = "generic") -> void:
 	id = p_id
@@ -68,7 +69,8 @@ func to_dict() -> Dictionary:
 		"is_enabled": is_enabled,
 		"is_powered_on": is_powered_on,
 		"network_interfaces": ifaces_dict,
-		"metadata": metadata
+		"metadata": metadata,
+		"arp_table": arp_table.to_dict()
 	}
 
 func from_dict(data: Dictionary) -> void:
@@ -88,6 +90,8 @@ func from_dict(data: Dictionary) -> void:
 			var iface = NetworkInterface.new(if_name, id)
 			iface.from_dict(if_data)
 			network_interfaces[if_name] = iface
+	if data.has("arp_table") and data["arp_table"] is Dictionary:
+		arp_table.from_dict(data["arp_table"])
 
 func get_device_type_display() -> String:
 	return device_type.capitalize()

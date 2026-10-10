@@ -45,6 +45,7 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["dig"] = _cmd_dig
 	commands["dns"] = _cmd_dns
 	commands["pcap"] = _cmd_pcap
+	commands["arp"] = _cmd_arp
 
 func _get_engine():
 	if engine_ref:
@@ -815,39 +816,22 @@ func _cmd_pcap(args: Array) -> String:
 				out += "%7.2f  %-15s %-15s %-5s  %4d  %s\n" % [p.time, p.src, p.dst, p.protocol, p.size, p.info]
 			return out.strip_edges()
 	return ""
+
+func _cmd_arp(args: Array) -> String:
 	var engine = _get_engine()
 	if not engine: return "Error"
 	var device = engine.get_device(device_id)
-	if not device or not ("services" in device):
-		return "No DNS service on this device"
-	var dns = null
-	for s in device.services:
-		if s is DnsService:
-			dns = s
-			break
-	if not dns:
-		return "No DNS service installed on this device"
-	match args[1]:
-		"add":
-			if args.size() < 4:
-				return "Usage: dns add <hostname> <ip>"
-			if not IPv4Address.is_valid(args[3]):
-				return "Invalid IP: %s" % args[3]
-			dns.add_record(args[2], args[3])
-			_notify_device_updated()
-			return "Added %s -> %s" % [args[2], args[3]]
-		"rm":
-			if args.size() < 3:
-				return "Usage: dns rm <hostname>"
-			if dns.remove_record(args[2]):
-				_notify_device_updated()
-				return "Removed %s" % args[2]
-			return "No such record: %s" % args[2]
-		"list":
-			if dns.records.is_empty():
-				return "No records"
-			var out = "HOSTNAME              IP\n"
-			for h in dns.records:
-				out += "%-20s %s\n" % [h, dns.records[h]]
-			return out.strip_edges()
-	return "Usage: dns add <hostname> <ip> | dns rm <hostname> | dns list"
+	if not device: return "Error"
+	var entries = device.arp_table.get_all_entries()
+	if entries.is_empty():
+		return "arp: no ARP entries (generate traffic with ping/curl first)"
+	var out = "Address                  HWtype  HWaddress           Iface\n"
+	for ip in entries:
+		var iface_name = "?"
+		for key in device.network_interfaces:
+			var iface = device.network_interfaces[key]
+			if iface.ipv4_address != "" and IPv4Address.is_same_subnet(ip, iface.ipv4_address, iface.subnet_mask if iface.subnet_mask != "" else "255.255.255.0"):
+				iface_name = iface.iface_name
+				break
+		out += "%-24s ether   %-19s %s\n" % [ip, entries[ip], iface_name]
+	return out.strip_edges()

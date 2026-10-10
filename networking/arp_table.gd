@@ -21,3 +21,7 @@ func get_all_entries() -> Dictionary:
 
 func to_dict() -> Dictionary:
 	return {"entries": entries.duplicate()}
+
+func from_dict(data: Dictionary) -> void:
+	if data.has("entries") and data["entries"] is Dictionary:
+		entries = data["entries"].duplicate()

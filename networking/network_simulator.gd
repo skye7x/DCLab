@@ -56,11 +56,17 @@ func ping(source_device_id: String, dest_ip: String, count: int = 4) -> Dictiona
 	if base_latency <= 0.0:
 		base_latency = hop_count * 1.5
 	
-	# Record traffic on each link for utilization tracking
+	# Record traffic on each link for utilization tracking, and learn ARP
 	for i in range(path.size() - 1):
 		var l = engine.get_link_between(path[i].device_id, path[i + 1].device_id)
 		if l:
 			l.record_traffic(84 * count * 2)  # request+reply per packet
+		# Learn ARP: each device learns the MAC of its neighbor on the shared link
+		var dev_a = engine.get_device(path[i].device_id)
+		var dev_b = engine.get_device(path[i + 1].device_id)
+		if dev_a and dev_b:
+			_learn_arp(dev_a, dev_b)
+			_learn_arp(dev_b, dev_a)
 	
 	# Apply packet loss from links along the path
 	var loss_chance = 0.0
@@ -105,6 +111,14 @@ func check_tcp_connection(source_device_id: String, dest_ip: String, dest_port: 
 			var allowed = dev.check_packet("tcp", "any", dest_ip, dest_port)
 			if not allowed:
 				return {"success": false, "message": "Connection filtered by firewall"}
+
+	# Learn ARP along the path
+	for i in range(path.size() - 1):
+		var dev_a = engine.get_device(path[i].device_id)
+		var dev_b = engine.get_device(path[i + 1].device_id)
+		if dev_a and dev_b:
+			_learn_arp(dev_a, dev_b)
+			_learn_arp(dev_b, dev_a)
 
 	var dest_dev = _find_device_by_ip(dest_ip)
 	if dest_dev and "services" in dest_dev:
@@ -160,6 +174,19 @@ func _get_primary_ip(dev) -> String:
 		if iface.ipv4_address != "" and iface.is_enabled:
 			return iface.ipv4_address
 	return ""
+
+func _learn_arp(learner, neighbor) -> void:
+	# Learner learns neighbor's IP->MAC on their shared link
+	var shared_ips: Array = []
+	var shared_macs: Array = []
+	for iface_l in learner.network_interfaces.values():
+		for iface_n in neighbor.network_interfaces.values():
+			if iface_l.link and iface_l.link == iface_n.link:
+				if iface_n.ipv4_address != "" and iface_n.is_enabled:
+					shared_ips.append(iface_n.ipv4_address)
+					shared_macs.append(iface_n.mac_address)
+	for j in range(shared_ips.size()):
+		learner.arp_table.add_entry(shared_ips[j], shared_macs[j])
 
 func _is_on_same_subnet(ip1: String, mask: String, ip2: String) -> bool:
 	return IPv4Address.is_same_subnet(ip1, ip2, mask)

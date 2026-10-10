@@ -342,6 +342,12 @@ func _rebuild() -> void:
 
 		_content.add_child(if_box)
 
+	if dev.arp_table and not dev.arp_table.get_all_entries().is_empty():
+		_section_header("ARP TABLE")
+		var arp_entries = dev.arp_table.get_all_entries()
+		for arp_ip in arp_entries:
+			_content.add_child(_field_label("  %s → %s" % [arp_ip, arp_entries[arp_ip]]))
+
 	_content.add_child(HSeparator.new())
 
 	var pwr = Button.new()
