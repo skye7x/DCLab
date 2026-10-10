@@ -467,6 +467,57 @@ func _cmd_route(args: Array) -> String:
 	if not device: return "Error"
 	
 	if device is RouterDevice and device.routing_table:
+		var action = args[1] if args.size() > 1 else "show"
+		if action == "add" and args.size() >= 3:
+			var net_part = args[2]
+			var net = net_part
+			var cidr = 24
+			if net_part.contains("/"):
+				var parts = net_part.split("/")
+				net = parts[0]
+				cidr = int(parts[1]) if parts.size() > 1 and parts[1].is_valid_int() else 24
+			if not IPv4Address.is_valid(net):
+				return "route: invalid network '%s'" % net
+			var gw = ""
+			var iface_name = ""
+			var metric = 100
+			var i = 3
+			while i < args.size():
+				match args[i]:
+					"via":
+						if i + 1 < args.size(): gw = args[i + 1]; i += 2
+						else: i += 1
+					"dev":
+						if i + 1 < args.size(): iface_name = args[i + 1]; i += 2
+						else: i += 1
+					"metric":
+						if i + 1 < args.size() and args[i + 1].is_valid_int(): metric = int(args[i + 1]); i += 2
+						else: i += 1
+					_:
+						i += 1
+			if iface_name == "":
+				# Pick first configured interface or the one matching the gateway's subnet
+				for key in device.network_interfaces:
+					var iface = device.network_interfaces[key]
+					if gw != "" and iface.is_configured() and IPv4Address.is_same_subnet(gw, iface.ipv4_address, iface.subnet_mask):
+						iface_name = key
+						break
+					elif iface_name == "" and iface.is_configured():
+						iface_name = key
+			device.add_route(net, cidr, iface_name, gw, metric)
+			_notify_device_updated()
+			return "Route added: %s/%d via %s dev %s metric %d" % [net, cidr, gw if gw != "" else "(direct)", iface_name, metric]
+		elif action == "del" and args.size() >= 3:
+			var net_part2 = args[2]
+			var net2 = net_part2
+			var cidr2 = 24
+			if net_part2.contains("/"):
+				var parts2 = net_part2.split("/")
+				net2 = parts2[0]
+				cidr2 = int(parts2[1]) if parts2.size() > 1 and parts2[1].is_valid_int() else 24
+			device.remove_route(net2, cidr2)
+			_notify_device_updated()
+			return "Route removed: %s/%d" % [net2, cidr2]
 		var routes = device.routing_table.get_all_routes()
 		var out = "Kernel IP routing table\n"
 		out += "Destination     Gateway         Genmask         Flags Metric Iface\n"

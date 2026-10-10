@@ -114,6 +114,20 @@ func _rebuild() -> void:
 		)
 		_content.add_child(btn_routes)
 
+		var btn_static = Button.new()
+		btn_static.text = " Manage Static Routes… "
+		btn_static.pressed.connect(func():
+			var tree = Engine.get_main_loop()
+			var dlg_class = load("res://scenes/dialogs/routes_dialog.gd")
+			if dlg_class:
+				var win = Window.new()
+				win.set_script(dlg_class)
+				tree.root.add_child(win)
+				if win.has_method("setup"): win.setup(_device_id)
+				win.popup_centered()
+		)
+		_content.add_child(btn_static)
+
 		var routes = router.routing_table.get_all_routes() if router.routing_table else []
 		if routes.size() > 0:
 			var rl = Label.new()

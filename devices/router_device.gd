@@ -64,12 +64,19 @@ func nat_clear() -> void:
 func auto_generate_routes() -> void:
 	if not routing_table:
 		routing_table = RoutingTable.new()
+	# Preserve static routes (those with a gateway set); clear only auto/connected routes
+	var static_routes: Array = []
+	for r in routing_table.get_all_routes():
+		if r.gateway != "":
+			static_routes.append(r)
 	routing_table.clear()
 	for iface in network_interfaces.values():
 		if iface.is_configured():
 			var subnet = iface.get_subnet()
 			if subnet:
 				routing_table.add_route(subnet.network_address, subnet.cidr, iface.iface_name, "", 0)
+	for r in static_routes:
+		routing_table.add_route(r.network, r.cidr, r.interface_name, r.gateway, r.metric)
 
 func dhcp_discover(iface_name: String, mac_address: String) -> Dictionary:
 	if not dhcp_enabled:
