@@ -41,6 +41,9 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["traceroute"] = _cmd_traceroute
 	commands["tracert"] = _cmd_traceroute
 	commands["nat"] = _cmd_nat
+	commands["nslookup"] = _cmd_nslookup
+	commands["dig"] = _cmd_dig
+	commands["dns"] = _cmd_dns
 
 func _get_engine():
 	if engine_ref:
@@ -85,6 +88,10 @@ func _cmd_help(args: Array) -> String:
 	output += "  Files:   help clear pwd ls cd cat mkdir touch rm echo\n"
 	output += "  System:  whoami hostname ps kill df mount\n"
 	output += "  Network: ip ifconfig route ping curl traceroute nat\n"
+	output += "  DNS:     nslookup <host>          resolve via network DNS\n"
+	output += "           dig <host> [A]           DNS query\n"
+	output += "           dns add <host> <ip>      add record (on DNS server)\n"
+	output += "           dns rm <host> | dns list\n"
 	output += "  DHCP:    dhclient <iface>        request an address\n"
 	output += "  IP set:  ip addr add <ip>/<cidr> dev <iface>\n"
 	output += "           ip addr del dev <iface>\n"
@@ -639,3 +646,95 @@ func _cmd_nat(args: Array) -> String:
 					out += "%-15s %-15s %d\n" % [internal_ip, e.external_ip, int(e.hits)]
 			return out.strip_edges()
 	return ""
+
+func _find_dns_service():
+	var engine = _get_engine()
+	if not engine:
+		return null
+	for dev in engine.get_all_devices():
+		if not dev.is_powered_on or not ("services" in dev):
+			continue
+		for s in dev.services:
+			if s is DnsService and s.is_running:
+				return s
+	return null
+
+func _cmd_nslookup(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: nslookup <hostname|ip> [dns_server]"
+	var query = args[1]
+	var dns = _find_dns_service()
+	# If query is an IP, do reverse lookup
+	if IPv4Address.is_valid(query):
+		if not dns:
+			return "** server can't find %s: non-existent domain" % query
+		for hostname in dns.records:
+			if dns.records[hostname] == query:
+				return "Server:  %s\nAddress:  %s\n\nName:    %s\nAddress:  %s" % [dns.service_name, query, hostname, query]
+		return "** server can't find %s: non-existent domain" % query
+	if not dns:
+		return "** server can't find %s: no DNS servers configured/running" % query
+	var ip = dns.resolve(query)
+	if ip != "":
+		return "Server:  dclab-dns\nAddress:  %s\n\nName:    %s\nAddress:  %s" % [ip, query, ip]
+	return "** server can't find %s: NXDOMAIN" % query
+
+func _cmd_dig(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: dig <hostname> [A|AAAA|MX|TXT]"
+	var query = args[1].to_lower()
+	var qtype = "A"
+	if args.size() > 2:
+		qtype = args[args.size() - 1].to_upper()
+	var dns = _find_dns_service()
+	var out = "; <<>> dig << DCLab >>\n"
+	out += ";; QUESTION SECTION:\n;%s\t\tIN\t%s\n" % [query, qtype]
+	out += "\n;; ANSWER SECTION:\n"
+	if dns and qtype == "A":
+		var ip = dns.resolve(query)
+		if ip != "":
+			out += "%s.\t\t%d\tIN\tA\t%s\n" % [query, dns.ttl_default, ip]
+			out += "\n;; Query time: 1 msec\n;; SERVER: dclab-dns#53\n;; WHEN: now\n"
+			return out
+	out += "\n;; Query time: 0 msec\n;; SERVER: dclab-dns#53\n;; WHEN: now\n;; WARNING: no answer / NXDOMAIN\n"
+	return out
+
+func _cmd_dns(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: dns add <hostname> <ip> | dns rm <hostname> | dns list"
+	var engine = _get_engine()
+	if not engine: return "Error"
+	var device = engine.get_device(device_id)
+	if not device or not ("services" in device):
+		return "No DNS service on this device"
+	var dns = null
+	for s in device.services:
+		if s is DnsService:
+			dns = s
+			break
+	if not dns:
+		return "No DNS service installed on this device"
+	match args[1]:
+		"add":
+			if args.size() < 4:
+				return "Usage: dns add <hostname> <ip>"
+			if not IPv4Address.is_valid(args[3]):
+				return "Invalid IP: %s" % args[3]
+			dns.add_record(args[2], args[3])
+			_notify_device_updated()
+			return "Added %s -> %s" % [args[2], args[3]]
+		"rm":
+			if args.size() < 3:
+				return "Usage: dns rm <hostname>"
+			if dns.remove_record(args[2]):
+				_notify_device_updated()
+				return "Removed %s" % args[2]
+			return "No such record: %s" % args[2]
+		"list":
+			if dns.records.is_empty():
+				return "No records"
+			var out = "HOSTNAME              IP\n"
+			for h in dns.records:
+				out += "%-20s %s\n" % [h, dns.records[h]]
+			return out.strip_edges()
+	return "Usage: dns add <hostname> <ip> | dns rm <hostname> | dns list"

@@ -59,6 +59,8 @@ static func from_dict(data: Dictionary) -> Service:
 			srv = SshService.new()
 		"database":
 			srv = DatabaseService.new()
+		"dns":
+			srv = DnsService.new()
 		_:
 			srv = Service.new(s_type, data.get("port", 0), data.get("protocol", "tcp"))
 	
@@ -68,6 +70,8 @@ static func from_dict(data: Dictionary) -> Service:
 		srv.is_running = data.get("is_running", false)
 		srv.auto_start = data.get("auto_start", false)
 		srv.device_id = data.get("device_id", "")
+		if srv is DnsService and data.has("records"):
+			srv.records = data["records"]
 		if srv.is_running:
 			srv.start()
 			

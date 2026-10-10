@@ -37,6 +37,9 @@ static func create(type: String, id: String, name: String = "") -> Device:
 			var http = HttpService.new()
 			device.add_service(http)
 			http.start()
+			var dns = DnsService.new()
+			device.add_service(dns)
+			dns.start()
 		"storage":
 			device = StorageDevice.new(id, dev_name)
 	return device
