@@ -7,6 +7,7 @@ var _input: LineEdit
 var _history: Array = []
 var _history_index: int = -1
 var _prompt_label: Label
+var _session_stack: Array = []   # [{device_id, user}] for SSH session nesting
 
 func setup(p_device_id: String) -> void:
 	device_id = p_device_id
@@ -113,6 +114,13 @@ func _on_command_entered(text: String) -> void:
 		var result = _command_processor.process_input(text)
 		if result == "[CLEAR]":
 			_output.clear()
+		elif result.begins_with("[SSH_SESSION:"):
+			var parts = result.trim_prefix("[SSH_SESSION:").trim_suffix("]").split(":", true, 1)
+			var target_dev_id = parts[0]
+			var login_user = parts[1] if parts.size() > 1 else "root"
+			_switch_ssh_session(target_dev_id, login_user)
+		elif result == "[SSH_EXIT]":
+			_exit_ssh_session()
 		elif not result.is_empty():
 			_append_output(result + "\n")
 	else:
@@ -126,6 +134,44 @@ func _on_command_entered(text: String) -> void:
 
 func _append_output(text: String) -> void:
 	_output.append_text(text)
+
+func _switch_ssh_session(target_dev_id: String, login_user: String) -> void:
+	var tree = Engine.get_main_loop()
+	var engine = tree.root.get_node_or_null("SimEngine") if tree and tree.root else null
+	var dest_dev = engine.get_device(target_dev_id) if engine else null
+	if not dest_dev or not ("operating_system" in dest_dev) or not dest_dev.operating_system:
+		_append_output("[color=#d06060]ssh: target OS unavailable[/color]\n")
+		return
+	# Push current session
+	_session_stack.append({"device_id": device_id, "processor": _command_processor})
+	# Switch
+	device_id = target_dev_id
+	var os = dest_dev.operating_system
+	os.switch_user(login_user)
+	var cp_class = load("res://terminal/command_processor.gd")
+	_command_processor = cp_class.new(target_dev_id, os)
+	_command_processor.engine_ref = engine
+	_append_output("[color=#5a8fd8]Connected to %s (%s) as %s[/color]\n" % [dest_dev.display_name, target_dev_id, login_user])
+	_append_output("[color=#7a7a85]Type 'exit' to return.[/color]\n")
+	title = "Terminal — %s @ %s" % [login_user, dest_dev.display_name]
+	if _prompt_label and _command_processor.has_method("get_prompt"):
+		_prompt_label.text = _command_processor.get_prompt()
+
+func _exit_ssh_session() -> void:
+	if _session_stack.is_empty():
+		_append_output("logout\n")
+		return
+	var prev = _session_stack.pop_back()
+	device_id = prev.device_id
+	_command_processor = prev.processor
+	var tree = Engine.get_main_loop()
+	var engine = tree.root.get_node_or_null("SimEngine") if tree and tree.root else null
+	var dev = engine.get_device(device_id) if engine else null
+	var dev_name = dev.display_name if dev else device_id
+	_append_output("[color=#5a8fd8]Disconnected from remote session.[/color]\n")
+	title = "Terminal — " + dev_name
+	if _prompt_label and _command_processor and _command_processor.has_method("get_prompt"):
+		_prompt_label.text = _command_processor.get_prompt()
 
 func _on_input_gui_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:

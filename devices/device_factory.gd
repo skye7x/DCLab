@@ -30,6 +30,9 @@ static func create(type: String, id: String, name: String = "") -> Device:
 			device = Computer.new(id, dev_name, "pc")
 			device.add_interface("eth0")
 			device.install_os("DCLinux")
+			var ssh = SshService.new()
+			device.add_service(ssh)
+			ssh.start()
 		"server":
 			device = Server.new(id, dev_name)
 			device.add_interface("eth0")
@@ -40,6 +43,9 @@ static func create(type: String, id: String, name: String = "") -> Device:
 			var dns = DnsService.new()
 			device.add_service(dns)
 			dns.start()
+			var ssh = SshService.new()
+			device.add_service(ssh)
+			ssh.start()
 		"storage":
 			device = StorageDevice.new(id, dev_name)
 	return device

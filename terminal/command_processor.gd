@@ -53,6 +53,9 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["users"] = _cmd_users
 	commands["apt"] = _cmd_apt
 	commands["crontab"] = _cmd_crontab
+	commands["ssh"] = _cmd_ssh
+	commands["exit"] = _cmd_exit
+	commands["logout"] = _cmd_exit
 
 func _get_engine():
 	if engine_ref:
@@ -1047,3 +1050,66 @@ func _cmd_crontab(args: Array) -> String:
 		"list":
 			return _cmd_crontab(["crontab"])
 	return "Usage: crontab [list|add <sched> <cmd>|rm <id>]"
+
+func _cmd_ssh(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: ssh <user@hostname|ip>"
+	var target = args[1]
+	var user = ""
+	var host = target
+	if target.contains("@"):
+		var parts = target.split("@", true, 1)
+		user = parts[0]
+		host = parts[1]
+	var engine = _get_engine()
+	if not engine:
+		return "ssh: no engine"
+	# Resolve host: IP address or device display name / id
+	var dest_dev = null
+	if IPv4Address.is_valid(host):
+		for dev in engine.get_all_devices():
+			for iface in dev.network_interfaces.values():
+				if iface.ipv4_address == host:
+					dest_dev = dev
+					break
+			if dest_dev: break
+	else:
+		for dev in engine.get_all_devices():
+			if dev.display_name == host or dev.id == host:
+				dest_dev = dev
+				break
+	if not dest_dev:
+		return "ssh: Could not resolve hostname '%s'" % host
+	if not dest_dev.is_powered_on:
+		return "ssh: host %s is down" % host
+	# Check TCP connectivity on port 22
+	var dest_ip = ""
+	for iface in dest_dev.network_interfaces.values():
+		if iface.ipv4_address != "" and iface.is_enabled:
+			dest_ip = iface.ipv4_address
+			break
+	if dest_ip != "" and engine.network_sim:
+		var check = engine.network_sim.check_tcp_connection(device_id, dest_ip, 22)
+		if not check.success:
+			return "ssh: %s (%s)" % [check.message, dest_ip]
+	# Check SSH service running
+	var has_ssh = false
+	if "services" in dest_dev:
+		for s in dest_dev.services:
+			if s.service_name == "ssh" and s.is_running:
+				has_ssh = true
+				break
+	if not has_ssh:
+		return "ssh: connection refused — sshd not running on %s (try: apt install openssh-server)" % dest_dev.display_name
+	# Check user exists
+	var dest_os = dest_dev.operating_system if "operating_system" in dest_dev else null
+	if not dest_os:
+		return "ssh: no OS on %s" % dest_dev.display_name
+	var login_user = user if user != "" else "root"
+	if not dest_os.get_user(login_user):
+		return "ssh: user '%s' does not exist on %s" % [login_user, dest_dev.display_name]
+	# Switch session — return special marker for the terminal to intercept
+	return "[SSH_SESSION:%s:%s]" % [dest_dev.id, login_user]
+
+func _cmd_exit(args: Array) -> String:
+	return "[SSH_EXIT]"
