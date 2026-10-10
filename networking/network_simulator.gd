@@ -23,14 +23,43 @@ func ping(source_device_id: String, dest_ip: String, count: int = 4) -> Dictiona
 	var result = {
 		"success": false,
 		"results": [],
-		"stats": {"sent": count, "received": 0, "lost_percent": 100.0}
+		"stats": {"sent": count, "received": 0, "lost_percent": 100.0},
+		"error": "",
+		"error_type": ""
 	}
 	
 	if not source_dev or not source_dev.is_powered_on:
+		result.error = "Source device is powered off"
+		result.error_type = "source_down"
+		return result
+		
+	var dest_dev = _find_device_by_ip(dest_ip)
+	if not dest_dev:
+		result.error = "Destination host unreachable: no device has address %s" % dest_ip
+		result.error_type = "no_host"
+		return result
+	if not dest_dev.is_powered_on:
+		result.error = "Destination host %s is powered off" % dest_ip
+		result.error_type = "dest_down"
 		return result
 		
 	var path = find_path(source_device_id, dest_ip)
 	if path.is_empty():
+		# Check if source has a route / is on same subnet or has gateway
+		var has_route = false
+		var src_iface_on_subnet = false
+		for iface in source_dev.network_interfaces.values():
+			if iface.ipv4_address != "" and iface.is_configured():
+				if IPv4Address.is_same_subnet(iface.ipv4_address, dest_ip, iface.subnet_mask):
+					src_iface_on_subnet = true
+				if iface.gateway != "":
+					has_route = true
+		if not src_iface_on_subnet and not has_route:
+			result.error = "Network unreachable: %s is not on any local subnet and no gateway is configured" % dest_ip
+			result.error_type = "no_route"
+		else:
+			result.error = "No route to host %s (check links, power, and intermediate devices)" % dest_ip
+			result.error_type = "no_path"
 		return result
 		
 	# Check firewall on path and apply NAT at routers
@@ -39,6 +68,8 @@ func ping(source_device_id: String, dest_ip: String, count: int = 4) -> Dictiona
 		if dev is FirewallDevice:
 			var allowed = dev.check_packet("icmp", "any", dest_ip, -1)
 			if not allowed:
+				result.error = "Destination unreachable: packet filtered by firewall %s" % dev.display_name
+				result.error_type = "firewall"
 				return result
 		elif dev is RouterDevice and dev.nat_enabled:
 			var src_dev = engine.get_device(source_device_id)

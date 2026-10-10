@@ -342,7 +342,8 @@ func _cmd_ping(args: Array) -> String:
 		
 	var res = engine.network_sim.ping(device_id, target_ip, count)
 	if not res.get("success", false):
-		return "PING %s\nRequest timeout.\n\n--- %s ping statistics ---\n%d packets transmitted, 0 received, 100%% packet loss" % [target_ip, target_ip, count]
+		var err_msg = res.get("error", "Request timeout.")
+		return "PING %s\n%s\n\n--- %s ping statistics ---\n%d packets transmitted, 0 received, 100%% packet loss" % [target_ip, err_msg, target_ip, count]
 		
 	var out = "PING %s (%s) 56(84) bytes of data.\n" % [target_ip, target_ip]
 	for r in res.results:
