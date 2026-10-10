@@ -58,6 +58,9 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["logout"] = _cmd_exit
 	commands["alias"] = _cmd_alias
 	commands["unalias"] = _cmd_unalias
+	commands["export"] = _cmd_export
+	commands["unset"] = _cmd_unset
+	commands["env"] = _cmd_env
 
 func _get_engine():
 	if engine_ref:
@@ -91,11 +94,39 @@ func process_input(input_text: String) -> String:
 		if args.size() == 0:
 			return ""
 
+	# Expand $VAR and ${VAR} in all args (skip command name and export/unset/env)
+	var cmd_name = args[0]
+	if cmd_name not in ["export", "unset", "env"]:
+		for i in range(args.size()):
+			args[i] = _expand_vars(args[i])
+
 	var cmd = args[0]
 	if commands.has(cmd):
 		return commands[cmd].call(args)
 	else:
 		return "bash: %s: command not found" % cmd
+
+func _expand_vars(text: String) -> String:
+	if not os_ref or not text.contains("$"):
+		return text
+	var result = text
+	# ${VAR} form
+	for key in os_ref.env_vars.keys():
+		result = result.replace("${" + key + "}", str(os_ref.env_vars[key]))
+	# $VAR form (simple, no nesting)
+	var regex = RegEx.new()
+	regex.compile("\\$([A-Za-z_][A-Za-z0-9_]*)")
+	var matches = regex.search_all(result)
+	var output = result
+	# Replace in reverse order to preserve positions
+	for i in range(matches.size() - 1, -1, -1):
+		var m = matches[i]
+		var var_name = m.get_string(1)
+		if os_ref.env_vars.has(var_name):
+			output = output.substr(0, m.get_start()) + str(os_ref.env_vars[var_name]) + output.substr(m.get_end())
+		else:
+			output = output.substr(0, m.get_start()) + "" + output.substr(m.get_end())
+	return output
 
 func get_prompt() -> String:
 	var user = os_ref.current_user.username if os_ref and os_ref.current_user else "root"
@@ -1156,3 +1187,53 @@ func _cmd_unalias(args: Array) -> String:
 	if os_ref.unalias(args[1]):
 		return ""
 	return "unalias: %s: not found" % args[1]
+
+func _cmd_export(args: Array) -> String:
+	if not os_ref:
+		return "export: no OS"
+	if args.size() < 2:
+		# List all exported vars
+		var out = ""
+		for key in os_ref.env_vars.keys():
+			out += "declare -x %s=\"%s\"\n" % [key, os_ref.env_vars[key]]
+		return out.strip_edges()
+	# Join all args after 'export' and split on first '='
+	var spec = " ".join(args.slice(1))
+	if spec.contains("="):
+		var kv = spec.split("=", true, 1)
+		var var_name = kv[0].strip_edges()
+		var var_val = kv[1].strip_edges().trim_prefix("'").trim_suffix("'").trim_prefix("\"").trim_suffix("\"")
+		if var_name.is_empty() or not _is_valid_identifier(var_name):
+			return "export: %s: not a valid identifier" % var_name
+		os_ref.env_vars[var_name] = var_val
+		return ""
+	return "export: %s: not a valid identifier" % args[1]
+
+func _is_valid_identifier(name: String) -> bool:
+	if name.is_empty():
+		return false
+	var first = name[0]
+	if not (first >= "A" and first <= "Z") and not (first >= "a" and first <= "z") and first != "_":
+		return false
+	for i in range(1, name.length()):
+		var c = name[i]
+		if not (c >= "A" and c <= "Z") and not (c >= "a" and c <= "z") and not (c >= "0" and c <= "9") and c != "_":
+			return false
+	return true
+
+func _cmd_unset(args: Array) -> String:
+	if not os_ref:
+		return "unset: no OS"
+	if args.size() < 2:
+		return "Usage: unset <name>"
+	if os_ref.env_vars.erase(args[1]):
+		return ""
+	return "unset: %s: not found" % args[1]
+
+func _cmd_env(args: Array) -> String:
+	if not os_ref:
+		return "env: no OS"
+	var out = ""
+	for key in os_ref.env_vars.keys():
+		out += "%s=%s\n" % [key, os_ref.env_vars[key]]
+	return out.strip_edges()
