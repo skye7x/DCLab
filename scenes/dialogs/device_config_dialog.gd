@@ -124,6 +124,19 @@ func _rebuild() -> void:
 				win.popup_centered()
 		)
 		_content.add_child(btn_srv_procs)
+		var btn_web = Button.new()
+		btn_web.text = " Web Content Editor… "
+		btn_web.pressed.connect(func():
+			var tree = Engine.get_main_loop()
+			var dlg_class = load("res://scenes/dialogs/web_content_editor.gd")
+			if dlg_class:
+				var win = Window.new()
+				win.set_script(dlg_class)
+				tree.root.add_child(win)
+				if win.has_method("setup"): win.setup(_device_id)
+				win.popup_centered()
+		)
+		_content.add_child(btn_web)
 		_content.add_child(HSeparator.new())
 
 	if dev is RouterDevice:
