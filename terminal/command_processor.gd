@@ -56,6 +56,8 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["ssh"] = _cmd_ssh
 	commands["exit"] = _cmd_exit
 	commands["logout"] = _cmd_exit
+	commands["alias"] = _cmd_alias
+	commands["unalias"] = _cmd_unalias
 
 func _get_engine():
 	if engine_ref:
@@ -78,7 +80,17 @@ func process_input(input_text: String) -> String:
 			
 	if args.size() == 0:
 		return ""
-		
+
+	# Expand alias for the first token (guard against recursive expansion)
+	if os_ref and os_ref.aliases.has(args[0]):
+		var expanded = os_ref.resolve_alias(input_text)
+		args = []
+		for part in expanded.split(" ", false):
+			if part != "":
+				args.append(part)
+		if args.size() == 0:
+			return ""
+
 	var cmd = args[0]
 	if commands.has(cmd):
 		return commands[cmd].call(args)
@@ -1113,3 +1125,34 @@ func _cmd_ssh(args: Array) -> String:
 
 func _cmd_exit(args: Array) -> String:
 	return "[SSH_EXIT]"
+
+func _cmd_alias(args: Array) -> String:
+	if not os_ref:
+		return "alias: no OS"
+	if args.size() < 2:
+		# List all aliases
+		if os_ref.aliases.is_empty():
+			return ""
+		var out = ""
+		for name in os_ref.aliases.keys():
+			out += "alias %s='%s'\n" % [name, os_ref.aliases[name]]
+		return out.strip_edges()
+	var spec = " ".join(args.slice(1))
+	if spec.contains("="):
+		var parts = spec.split("=", true, 1)
+		var alias_name = parts[0].strip_edges()
+		var alias_cmd = parts[1].strip_edges().trim_prefix("'").trim_suffix("'").trim_prefix("\"").trim_suffix("\"")
+		if alias_name.is_empty() or alias_cmd.is_empty():
+			return "alias: invalid syntax — alias name='command'"
+		os_ref.alias(alias_name, alias_cmd)
+		return ""
+	return "alias: invalid syntax — alias name='command'"
+
+func _cmd_unalias(args: Array) -> String:
+	if not os_ref:
+		return "unalias: no OS"
+	if args.size() < 2:
+		return "Usage: unalias <name>"
+	if os_ref.unalias(args[1]):
+		return ""
+	return "unalias: %s: not found" % args[1]

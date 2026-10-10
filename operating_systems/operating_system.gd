@@ -10,6 +10,7 @@ var current_user: UserAccount
 var device_id: String = ""
 var _next_pid: int = 1
 var cron_jobs: Array = []   # {"id": int, "schedule": String, "command": String}
+var aliases: Dictionary = {}   # name -> command string
 
 func _init(p_hostname: String = "localhost", p_device_id: String = ""):
 	hostname = p_hostname
@@ -135,6 +136,20 @@ func get_next_pid() -> int:
 	_next_pid += 1
 	return pid
 
+func alias(name: String, command: String) -> void:
+	aliases[name] = command
+
+func unalias(name: String) -> bool:
+	return aliases.erase(name)
+
+func resolve_alias(text: String) -> String:
+	var parts = text.split(" ", false, 1)
+	var name = parts[0]
+	if aliases.has(name):
+		var rest = parts[1] if parts.size() > 1 else ""
+		return aliases[name] + (" " + rest if rest != "" else "")
+	return text
+
 func to_dict() -> Dictionary:
 	var users_data = []
 	for u in users:
@@ -153,7 +168,8 @@ func to_dict() -> Dictionary:
 		"current_user_name": current_user.username if current_user else "root",
 		"device_id": device_id,
 		"_next_pid": _next_pid,
-		"cron_jobs": cron_jobs.duplicate(true)
+		"cron_jobs": cron_jobs.duplicate(true),
+		"aliases": aliases.duplicate()
 	}
 
 func from_dict(data: Dictionary):
@@ -163,6 +179,7 @@ func from_dict(data: Dictionary):
 	_next_pid = data.get("_next_pid", 1)
 	env_vars = data.get("env_vars", {})
 	cron_jobs = data.get("cron_jobs", [])
+	aliases = data.get("aliases", {})
 	
 	users.clear()
 	for ud in data.get("users", []):
