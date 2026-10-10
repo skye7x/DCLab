@@ -9,6 +9,7 @@ var env_vars: Dictionary = {}
 var current_user: UserAccount
 var device_id: String = ""
 var _next_pid: int = 1
+var cron_jobs: Array = []   # {"id": int, "schedule": String, "command": String}
 
 func _init(p_hostname: String = "localhost", p_device_id: String = ""):
 	hostname = p_hostname
@@ -78,6 +79,43 @@ func switch_user(username: String) -> String:
 	env_vars["USER"] = user.username
 	return ""
 
+func cron_add(schedule: String, command: String) -> int:
+	var job_id = cron_jobs.size() + 1
+	cron_jobs.append({"id": job_id, "schedule": schedule, "command": command})
+	return job_id
+
+func cron_remove(job_id: int) -> bool:
+	for i in range(cron_jobs.size()):
+		if cron_jobs[i].id == job_id:
+			cron_jobs.remove_at(i)
+			return true
+	return false
+
+func cron_list() -> Array:
+	return cron_jobs.duplicate(true)
+
+func run_cron_due(now_minutes: int) -> Array:
+	# Simplified cron: schedule is "* * * *" style minute-hour-day-month-dow
+	# We only check the minute field for simplicity: "*"=any, "N"=exact, "*/N"=every N
+	var results: Array = []
+	for job in cron_jobs:
+		var fields = job.schedule.split(" ", false)
+		if fields.size() == 0:
+			continue
+		var min_field = fields[0]
+		var due = false
+		if min_field == "*":
+			due = true
+		elif min_field.begins_with("*/"):
+			var step = int(min_field.substr(2))
+			if step > 0 and now_minutes % step == 0:
+				due = true
+		elif min_field.is_valid_int() and int(min_field) == now_minutes % 60:
+			due = true
+		if due:
+			results.append(job.command)
+	return results
+
 func add_process(name: String, cpu: float = 0.0, ram: float = 0.0) -> ProcessInfo:
 	var process = ProcessInfo.new(get_next_pid(), name, cpu, ram)
 	processes.append(process)
@@ -114,7 +152,8 @@ func to_dict() -> Dictionary:
 		"env_vars": env_vars,
 		"current_user_name": current_user.username if current_user else "root",
 		"device_id": device_id,
-		"_next_pid": _next_pid
+		"_next_pid": _next_pid,
+		"cron_jobs": cron_jobs.duplicate(true)
 	}
 
 func from_dict(data: Dictionary):
@@ -123,6 +162,7 @@ func from_dict(data: Dictionary):
 	device_id = data.get("device_id", "")
 	_next_pid = data.get("_next_pid", 1)
 	env_vars = data.get("env_vars", {})
+	cron_jobs = data.get("cron_jobs", [])
 	
 	users.clear()
 	for ud in data.get("users", []):

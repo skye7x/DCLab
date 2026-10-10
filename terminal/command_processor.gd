@@ -52,6 +52,7 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["su"] = _cmd_su
 	commands["users"] = _cmd_users
 	commands["apt"] = _cmd_apt
+	commands["crontab"] = _cmd_crontab
 
 func _get_engine():
 	if engine_ref:
@@ -1015,3 +1016,34 @@ func _pkg_installed(pkg: String) -> bool:
 		if s.service_name == svc:
 			return true
 	return false
+
+func _cmd_crontab(args: Array) -> String:
+	if not os_ref:
+		return "crontab: no OS"
+	if args.size() < 2:
+		var jobs = os_ref.cron_list()
+		if jobs.is_empty():
+			return "no crontab for current user"
+		var out = "ID  SCHEDULE        COMMAND\n"
+		for j in jobs:
+			out += "%-3d %-15s %s\n" % [j.id, j.schedule, j.command]
+		return out.strip_edges()
+	match args[1]:
+		"add":
+			if args.size() < 4:
+				return "Usage: crontab add <schedule> <command>\n  schedule examples: '* * * * *' (every min), '*/5 * * * *' (every 5 min)"
+			var schedule = args[2]
+			var command = " ".join(args.slice(3))
+			var jid = os_ref.cron_add(schedule, command)
+			_notify_device_updated()
+			return "Cron job %d added: %s  %s" % [jid, schedule, command]
+		"rm":
+			if args.size() < 3 or not args[2].is_valid_int():
+				return "Usage: crontab rm <id>"
+			if os_ref.cron_remove(int(args[2])):
+				_notify_device_updated()
+				return "Cron job %s removed" % args[2]
+			return "No such cron job: %s" % args[2]
+		"list":
+			return _cmd_crontab(["crontab"])
+	return "Usage: crontab [list|add <sched> <cmd>|rm <id>]"

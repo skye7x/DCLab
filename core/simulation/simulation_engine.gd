@@ -8,9 +8,36 @@ var speed: float = 1.0
 
 var _next_id: int = 1
 var _next_link_id: int = 1
+var _cron_last_minute: int = -1
 
 func _ready() -> void:
 	network_sim = NetworkSimulator.new(self)
+	EventBus.simulation_tick.connect(_on_sim_tick)
+
+func _on_sim_tick(_delta: float) -> void:
+	# Cron: run due jobs once per simulated minute
+	if not is_running:
+		return
+	var sim_time = get_node_or_null("/root/SimTime")
+	if not sim_time:
+		return
+	var minutes = int(sim_time.total_elapsed / 60.0)
+	if minutes == _cron_last_minute:
+		return
+	_cron_last_minute = minutes
+	for dev in get_all_devices():
+		if not dev.is_powered_on:
+			continue
+		if not ("operating_system" in dev) or not dev.operating_system:
+			continue
+		var due = dev.operating_system.run_cron_due(minutes)
+		for cmd in due:
+			var cp = CommandProcessor.new(dev.id, dev.operating_system)
+			cp.engine_ref = self
+			var result = cp.process_input(cmd)
+			var logger = get_node_or_null("/root/SimLogger")
+			if logger:
+				logger.log_info(dev.id, "CRON: %s -> %s" % [cmd, result.replace("\n", " | ").substr(0, 80)])
 
 func generate_id() -> String:
 	var id: String = "dev_%03d" % _next_id
