@@ -94,6 +94,36 @@ func _rebuild() -> void:
 		hw.add_child(_field_label("%.0f MB" % comp.ram_mb))
 		hw.add_child(_field_label("Storage:"))
 		hw.add_child(_field_label("%d MB" % comp.storage_mb))
+		var btn_procs = Button.new()
+		btn_procs.text = " Process Manager… "
+		btn_procs.pressed.connect(func():
+			var tree = Engine.get_main_loop()
+			var dlg_class = load("res://scenes/dialogs/process_manager_dialog.gd")
+			if dlg_class:
+				var win = Window.new()
+				win.set_script(dlg_class)
+				tree.root.add_child(win)
+				if win.has_method("setup"): win.setup(_device_id)
+				win.popup_centered()
+		)
+		_content.add_child(btn_procs)
+		_content.add_child(HSeparator.new())
+
+	if dev is Server:
+		_section_header("SERVER")
+		var btn_srv_procs = Button.new()
+		btn_srv_procs.text = " Process Manager… "
+		btn_srv_procs.pressed.connect(func():
+			var tree = Engine.get_main_loop()
+			var dlg_class = load("res://scenes/dialogs/process_manager_dialog.gd")
+			if dlg_class:
+				var win = Window.new()
+				win.set_script(dlg_class)
+				tree.root.add_child(win)
+				if win.has_method("setup"): win.setup(_device_id)
+				win.popup_centered()
+		)
+		_content.add_child(btn_srv_procs)
 		_content.add_child(HSeparator.new())
 
 	if dev is RouterDevice:
