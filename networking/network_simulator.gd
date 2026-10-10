@@ -1,0 +1,175 @@
+class_name NetworkSimulator
+extends RefCounted
+
+var engine
+
+func _init(p_engine) -> void:
+	engine = p_engine
+
+func find_path(source_device_id: String, dest_ip: String) -> Array:
+	var source_dev = engine.get_device(source_device_id)
+	if not source_dev or not source_dev.is_powered_on:
+		return []
+
+	var dest_dev = _find_device_by_ip(dest_ip)
+	if not dest_dev or not dest_dev.is_powered_on:
+		return []
+
+	var path = _trace_through_network(source_device_id, dest_dev.id, dest_ip)
+	return path
+
+func ping(source_device_id: String, dest_ip: String, count: int = 4) -> Dictionary:
+	var source_dev = engine.get_device(source_device_id)
+	var result = {
+		"success": false,
+		"results": [],
+		"stats": {"sent": count, "received": 0, "lost_percent": 100.0}
+	}
+	
+	if not source_dev or not source_dev.is_powered_on:
+		return result
+		
+	var path = find_path(source_device_id, dest_ip)
+	if path.is_empty():
+		return result
+		
+	# Check firewall on path
+	for hop in path:
+		var dev = engine.get_device(hop.device_id)
+		if dev is FirewallDevice:
+			var allowed = dev.check_packet("icmp", "any", dest_ip, -1)
+			if not allowed:
+				return result
+				
+	var hop_count = max(1, path.size() - 1)
+	var base_latency = hop_count * 1.5
+	
+	for i in range(count):
+		var time_ms = snapped(base_latency + (i * 0.1), 0.1)
+		result.results.append({"seq": i + 1, "time_ms": time_ms, "ttl": 64 - hop_count})
+		result.stats.received += 1
+		
+	result.success = true
+	result.stats.lost_percent = 0.0
+	
+	# Trigger packet animations along the path
+	_animate_path_traffic(path, "ICMP")
+	
+	return result
+
+func check_tcp_connection(source_device_id: String, dest_ip: String, dest_port: int) -> Dictionary:
+	var path = find_path(source_device_id, dest_ip)
+	if path.is_empty():
+		return {"success": false, "message": "No route to host"}
+		
+	for hop in path:
+		var dev = engine.get_device(hop.device_id)
+		if dev is FirewallDevice:
+			var allowed = dev.check_packet("tcp", "any", dest_ip, dest_port)
+			if not allowed:
+				return {"success": false, "message": "Connection filtered by firewall"}
+
+	var dest_dev = _find_device_by_ip(dest_ip)
+	if dest_dev and "services" in dest_dev:
+		var has_service = false
+		for s in dest_dev.services:
+			if s.port == dest_port and s.is_running:
+				has_service = true
+				break
+		if not has_service:
+			return {"success": false, "message": "Connection refused"}
+			
+	return {"success": true, "message": "Connected", "path": path}
+
+func http_request(source_device_id: String, dest_ip: String, port: int = 80, path: String = "/") -> Dictionary:
+	var tcp_check = check_tcp_connection(source_device_id, dest_ip, port)
+	if not tcp_check.success:
+		return {"success": false, "status_code": 0, "body": "", "error": tcp_check.message}
+		
+	var dest_dev = _find_device_by_ip(dest_ip)
+	if dest_dev and "services" in dest_dev:
+		for s in dest_dev.services:
+			if s.port == port and s.is_running:
+				var req_data = {"path": path, "method": "GET"}
+				var response = s.handle_request(req_data)
+				if response is Dictionary:
+					var status = response.get("status", 200)
+					var body = response.get("body", "")
+					if tcp_check.has("path"):
+						_animate_path_traffic(tcp_check.path, "HTTP")
+					return {"success": status == 200, "status_code": status, "body": str(body), "error": "" if status == 200 else str(body)}
+				else:
+					if tcp_check.has("path"):
+						_animate_path_traffic(tcp_check.path, "HTTP")
+					return {"success": true, "status_code": 200, "body": str(response), "error": ""}
+				
+	return {"success": false, "status_code": 500, "body": "", "error": "Internal Error"}
+
+func _find_device_by_ip(ip: String):
+	for dev in engine.get_all_devices():
+		for iface in dev.network_interfaces.values():
+			if iface.ipv4_address == ip and iface.is_enabled:
+				return dev
+	return null
+
+func _is_on_same_subnet(ip1: String, mask: String, ip2: String) -> bool:
+	return IPv4Address.is_same_subnet(ip1, ip2, mask)
+
+func _trace_through_network(source_device_id: String, dest_device_id: String, dest_ip: String = "") -> Array:
+	var queue: Array = [{"dev_id": source_device_id, "path": [{"device_id": source_device_id, "interface_name": ""}]}]
+	var visited: Dictionary = {source_device_id: true}
+	
+	while queue.size() > 0:
+		var current = queue.pop_front()
+		var curr_dev_id = current.dev_id
+		var curr_path = current.path
+		
+		if curr_dev_id == dest_device_id:
+			return curr_path
+			
+		var dev = engine.get_device(curr_dev_id)
+		if not dev or not dev.is_powered_on:
+			continue
+			
+		# If router, optionally inspect routing table for next hop
+		if dev is RouterDevice and dest_ip != "" and curr_dev_id != source_device_id:
+			dev.auto_generate_routes()
+			dev.route_packet(dest_ip)
+			
+		for conn in engine.get_connections_for_device(curr_dev_id):
+			if not conn.is_enabled:
+				continue
+			var other_id = conn.get_other_device_id(curr_dev_id)
+			if visited.has(other_id):
+				continue
+				
+			var other_dev = engine.get_device(other_id)
+			if not other_dev or not other_dev.is_powered_on:
+				continue
+				
+			visited[other_id] = true
+			var new_path = curr_path.duplicate()
+			new_path.append({"device_id": other_id, "interface_name": conn.get_other_interface_name(curr_dev_id)})
+			queue.append({"dev_id": other_id, "path": new_path})
+				
+	return []
+
+func _animate_path_traffic(path: Array, protocol: String) -> void:
+	if path.size() < 2:
+		return
+	var tree = Engine.get_main_loop()
+	if not tree or not tree.root:
+		return
+		
+	# Find workspace connection lines to trigger animations
+	var workspace = tree.root.find_child("Workspace", true, false)
+	if workspace and "connection_lines" in workspace:
+		for i in range(path.size() - 1):
+			var d1 = path[i].device_id
+			var d2 = path[i+1].device_id
+			for link_id in workspace.connection_lines:
+				var cline = workspace.connection_lines[link_id]
+				if cline and cline.link_ref:
+					var l = cline.link_ref
+					if (l.source_device_id == d1 and l.dest_device_id == d2) or (l.source_device_id == d2 and l.dest_device_id == d1):
+						cline.show_packet_animation(protocol)

@@ -1,0 +1,28 @@
+# Godot 4 specific
+.godot/
+*.import
+
+# Mono / .NET (not used but just in case)
+.mono/
+data_*/
+mono_crash.*.json
+
+# OS generated
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Exports
+export/
+*.pck
+*.zip
+
+# Builds
+build/
