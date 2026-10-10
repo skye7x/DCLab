@@ -38,6 +38,46 @@ func get_user(username: String) -> UserAccount:
 			return user
 	return null
 
+func remove_user(username: String) -> bool:
+	for i in range(users.size()):
+		if users[i].username == username:
+			if users[i].is_root:
+				return false
+			users.remove_at(i)
+			return true
+	return false
+
+func set_password(username: String, password: String) -> bool:
+	var user = get_user(username)
+	if not user:
+		return false
+	# Simple non-reversible-ish hash for the lab (NOT real security)
+	var hash = 5381
+	for i in range(password.length()):
+		hash = ((hash << 5) + hash + password.unicode_at(i)) & 0x7FFFFFFF
+	user.password_hash = "sha1:%08x" % hash
+	return true
+
+func authenticate(username: String, password: String) -> bool:
+	var user = get_user(username)
+	if not user:
+		return false
+	if user.password_hash == "":
+		return true  # no password set
+	var hash = 5381
+	for i in range(password.length()):
+		hash = ((hash << 5) + hash + password.unicode_at(i)) & 0x7FFFFFFF
+	return user.password_hash == "sha1:%08x" % hash
+
+func switch_user(username: String) -> String:
+	var user = get_user(username)
+	if not user:
+		return "su: user %s does not exist" % username
+	current_user = user
+	env_vars["HOME"] = user.home_directory
+	env_vars["USER"] = user.username
+	return ""
+
 func add_process(name: String, cpu: float = 0.0, ram: float = 0.0) -> ProcessInfo:
 	var process = ProcessInfo.new(get_next_pid(), name, cpu, ram)
 	processes.append(process)

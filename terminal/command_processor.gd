@@ -46,6 +46,11 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["dns"] = _cmd_dns
 	commands["pcap"] = _cmd_pcap
 	commands["arp"] = _cmd_arp
+	commands["useradd"] = _cmd_useradd
+	commands["userdel"] = _cmd_userdel
+	commands["passwd"] = _cmd_passwd
+	commands["su"] = _cmd_su
+	commands["users"] = _cmd_users
 
 func _get_engine():
 	if engine_ref:
@@ -88,7 +93,11 @@ func get_prompt() -> String:
 func _cmd_help(args: Array) -> String:
 	var output = "Available commands:\n"
 	output += "  Files:   help clear pwd ls cd cat mkdir touch rm echo\n"
-	output += "  System:  whoami hostname ps kill df mount\n"
+	output += "  System:  whoami hostname ps kill df mount users\n"
+	output += "  Users:   useradd <name>          create user\n"
+	output += "           userdel <name>          remove user\n"
+	output += "           passwd <name> <pass>    set password\n"
+	output += "           su <name> [pass]        switch user\n"
 	output += "  Network: ip ifconfig route ping curl traceroute nat\n"
 	output += "  DNS:     nslookup <host>          resolve via network DNS\n"
 	output += "           dig <host> [A]           DNS query\n"
@@ -835,4 +844,66 @@ func _cmd_arp(args: Array) -> String:
 				iface_name = iface.iface_name
 				break
 		out += "%-24s ether   %-19s %s\n" % [ip, entries[ip], iface_name]
+	return out.strip_edges()
+
+func _cmd_useradd(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: useradd <username>"
+	if not os_ref:
+		return "useradd: no OS"
+	var uname = args[1]
+	if os_ref.get_user(uname):
+		return "useradd: user '%s' already exists" % uname
+	os_ref.add_user(uname, false)
+	_notify_device_updated()
+	return "User '%s' created" % uname
+
+func _cmd_userdel(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: userdel <username>"
+	if not os_ref:
+		return "userdel: no OS"
+	if os_ref.remove_user(args[1]):
+		_notify_device_updated()
+		return "User '%s' removed" % args[1]
+	return "userdel: cannot remove '%s' (not found or is root)" % args[1]
+
+func _cmd_passwd(args: Array) -> String:
+	if not os_ref:
+		return "passwd: no OS"
+	var target = args[1] if args.size() > 1 else (os_ref.current_user.username if os_ref.current_user else "root")
+	if args.size() < 3:
+		return "Usage: passwd <username> <password>   (interactive prompts not supported in sim)"
+	if os_ref.set_password(target, args[2]):
+		_notify_device_updated()
+		return "Password for %s updated" % target
+	return "passwd: user '%s' does not exist" % target
+
+func _cmd_su(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: su <username> [password]"
+	if not os_ref:
+		return "su: no OS"
+	var target = args[1]
+	var user = os_ref.get_user(target)
+	if not user:
+		return "su: user '%s' does not exist" % target
+	if user.password_hash != "":
+		if args.size() < 3:
+			return "Password: (use: su <user> <password>)"
+		if not os_ref.authenticate(target, args[2]):
+			return "su: Authentication failure"
+	var err = os_ref.switch_user(target)
+	if err != "":
+		return err
+	current_directory = user.home_directory
+	_notify_device_updated()
+	return "Now acting as %s@%s" % [target, os_ref.hostname]
+
+func _cmd_users(args: Array) -> String:
+	if not os_ref:
+		return "users: no OS"
+	var out = "USERNAME   UID  GROUP   HOME\n"
+	for u in os_ref.users:
+		out += "%-10s %-4d %-7s %s\n" % [u.username, 0 if u.is_root else 1000, "root" if u.is_root else "users", u.home_directory]
 	return out.strip_edges()
