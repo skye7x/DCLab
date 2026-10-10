@@ -51,6 +51,7 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["passwd"] = _cmd_passwd
 	commands["su"] = _cmd_su
 	commands["users"] = _cmd_users
+	commands["apt"] = _cmd_apt
 
 func _get_engine():
 	if engine_ref:
@@ -907,3 +908,110 @@ func _cmd_users(args: Array) -> String:
 	for u in os_ref.users:
 		out += "%-10s %-4d %-7s %s\n" % [u.username, 0 if u.is_root else 1000, "root" if u.is_root else "users", u.home_directory]
 	return out.strip_edges()
+
+# Package name -> service type it installs (if any)
+const APT_PACKAGES := {
+	"nginx": {"service": "http", "desc": "web server"},
+	"apache2": {"service": "http", "desc": "web server"},
+	"openssh-server": {"service": "ssh", "desc": "secure shell daemon"},
+	"bind9": {"service": "dns", "desc": "DNS server"},
+	"postgresql": {"service": "database", "desc": "database server"},
+	"mysql-server": {"service": "database", "desc": "database server"},
+	"curl": {"service": "", "desc": "command-line HTTP client"},
+	"vim": {"service": "", "desc": "text editor"},
+	"htop": {"service": "", "desc": "process viewer"},
+	"net-tools": {"service": "", "desc": "networking utilities"},
+	"iptables": {"service": "", "desc": "firewall tool"},
+}
+
+func _cmd_apt(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: apt <install|remove|list|update> [package]"
+	if not os_ref:
+		return "apt: no OS"
+	var action = args[1]
+	match action:
+		"update":
+			return "Hit:1 http://deb.dclab.local noble InRelease\nReading package lists... Done\nAll packages are up to date."
+		"list":
+			var out = "Listing... Done\n"
+			for pkg in APT_PACKAGES:
+				var marker = "installed" if _pkg_installed(pkg) else "not-installed"
+				out += "%s/stable %s  %s\n" % [pkg, marker, APT_PACKAGES[pkg].desc]
+			return out.strip_edges()
+		"install":
+			if args.size() < 3:
+				return "Usage: apt install <package>"
+			var pkg = args[2]
+			if not APT_PACKAGES.has(pkg):
+				return "E: Unable to locate package %s" % pkg
+			if _pkg_installed(pkg):
+				return "%s is already the newest version." % pkg
+			var entry = APT_PACKAGES[pkg]
+			var engine = _get_engine()
+			var device = engine.get_device(device_id) if engine else null
+			var lines = "Reading package lists... Done\nBuilding dependency tree... Done\n"
+			lines += "The following NEW packages will be installed:\n  %s\n0 upgraded, 1 newly installed, 0 to remove\n" % pkg
+			lines += "Need to get 0 B of archives.\nAfter this operation, 0 B of additional disk space will be used.\n"
+			lines += "Selecting previously unselected package %s.\n" % pkg
+			if entry.service != "" and device and "services" in device:
+				var existing = false
+				for s in device.services:
+					if s.service_name == entry.service:
+						existing = true
+						break
+				if not existing:
+					var srv = null
+					match entry.service:
+						"http": srv = HttpService.new()
+						"ssh": srv = SshService.new()
+						"dns": srv = DnsService.new()
+						"database": srv = DatabaseService.new()
+					if srv:
+						srv.device_id = device_id
+						device.add_service(srv)
+						srv.start()
+						lines += "Setting up %s ... enabled and started %s service\n" % [pkg, entry.service]
+			else:
+				lines += "Setting up %s ...\n" % pkg
+			lines += "Processing triggers for man-db ...\n"
+			lines += "%s installed successfully." % pkg
+			if os_ref:
+				os_ref.add_process(pkg, 0.5, 20.0)
+			_notify_device_updated()
+			return lines
+		"remove":
+			if args.size() < 3:
+				return "Usage: apt remove <package>"
+			var pkg2 = args[2]
+			if not APT_PACKAGES.has(pkg2):
+				return "E: Unable to locate package %s" % pkg2
+			if not _pkg_installed(pkg2):
+				return "E: Package %s is not installed, so not removed" % pkg2
+			var entry2 = APT_PACKAGES[pkg2]
+			var engine2 = _get_engine()
+			var device2 = engine2.get_device(device_id) if engine2 else null
+			if entry2.service != "" and device2 and "services" in device2:
+				for i in range(device2.services.size() - 1, -1, -1):
+					if device2.services[i].service_name == entry2.service:
+						device2.services[i].stop()
+						device2.services.remove_at(i)
+						break
+			_notify_device_updated()
+			return "Removing %s ...\n%s removed." % [pkg2, pkg2]
+	return "Usage: apt <install|remove|list|update> [package]"
+
+func _pkg_installed(pkg: String) -> bool:
+	if not APT_PACKAGES.has(pkg):
+		return false
+	var engine = _get_engine()
+	var device = engine.get_device(device_id) if engine else null
+	if not device or not ("services" in device):
+		return false
+	var svc = APT_PACKAGES[pkg].service
+	if svc == "":
+		return false
+	for s in device.services:
+		if s.service_name == svc:
+			return true
+	return false
