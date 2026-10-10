@@ -116,17 +116,25 @@ func _is_on_same_subnet(ip1: String, mask: String, ip2: String) -> bool:
 	return IPv4Address.is_same_subnet(ip1, ip2, mask)
 
 func _trace_through_network(source_device_id: String, dest_device_id: String, dest_ip: String = "") -> Array:
-	var queue: Array = [{"dev_id": source_device_id, "path": [{"device_id": source_device_id, "interface_name": ""}]}]
-	var visited: Dictionary = {source_device_id: true}
+	# Each queue item tracks dev, path so far, and the ingress interface on that device (for VLAN checks)
+	var queue: Array = [{"dev_id": source_device_id, "path": [{"device_id": source_device_id, "interface_name": ""}], "ingress": ""}]
+	var visited: Dictionary = {}
 	
 	while queue.size() > 0:
 		var current = queue.pop_front()
 		var curr_dev_id = current.dev_id
 		var curr_path = current.path
+		var ingress_iface: String = current.ingress
 		
 		if curr_dev_id == dest_device_id:
 			return curr_path
 			
+		# Mark (device, ingress_iface) visited to allow revisiting via different VLANs/ports
+		var visit_key = curr_dev_id + "|" + ingress_iface
+		if visited.has(visit_key):
+			continue
+		visited[visit_key] = true
+		
 		var dev = engine.get_device(curr_dev_id)
 		if not dev or not dev.is_powered_on:
 			continue
@@ -140,17 +148,21 @@ func _trace_through_network(source_device_id: String, dest_device_id: String, de
 			if not conn.is_enabled:
 				continue
 			var other_id = conn.get_other_device_id(curr_dev_id)
-			if visited.has(other_id):
-				continue
-				
+			var my_iface = conn.source_interface_name if conn.source_device_id == curr_dev_id else conn.dest_interface_name
+			
+			# VLAN check: if we entered a switch via ingress_iface, the outgoing port must be allowed
+			if dev is SwitchDevice and ingress_iface != "":
+				if not dev.can_forward_between(ingress_iface, my_iface):
+					continue
+			
 			var other_dev = engine.get_device(other_id)
 			if not other_dev or not other_dev.is_powered_on:
 				continue
 				
-			visited[other_id] = true
+			var other_ingress = conn.get_other_interface_name(curr_dev_id)
 			var new_path = curr_path.duplicate()
-			new_path.append({"device_id": other_id, "interface_name": conn.get_other_interface_name(curr_dev_id)})
-			queue.append({"dev_id": other_id, "path": new_path})
+			new_path.append({"device_id": other_id, "interface_name": other_ingress})
+			queue.append({"dev_id": other_id, "path": new_path, "ingress": other_ingress})
 				
 	return []
 

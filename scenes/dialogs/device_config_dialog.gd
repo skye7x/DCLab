@@ -216,6 +216,45 @@ func _rebuild() -> void:
 			_content.add_child(srow)
 		_content.add_child(HSeparator.new())
 
+	if dev is SwitchDevice:
+		_section_header("VLANs")
+		var vlan_grid = GridContainer.new()
+		vlan_grid.columns = 4
+		vlan_grid.add_theme_constant_override("h_separation", 8)
+		vlan_grid.add_theme_constant_override("v_separation", 4)
+		vlan_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_content.add_child(vlan_grid)
+		var hdr_font_color = Color(0.55, 0.65, 0.8)
+		for h in ["Port", "VLAN", "Trunk", ""]:
+			var hl = Label.new()
+			hl.text = h
+			hl.add_theme_color_override("font_color", hdr_font_color)
+			vlan_grid.add_child(hl)
+		var sw = dev as SwitchDevice
+		for port_name in sw.network_interfaces.keys():
+			var plbl = Label.new()
+			plbl.text = port_name
+			plbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85))
+			vlan_grid.add_child(plbl)
+			var vlan_spin = SpinBox.new()
+			vlan_spin.min_value = 1
+			vlan_spin.max_value = 4094
+			vlan_spin.value = sw.get_port_vlan(port_name)
+			vlan_spin.custom_minimum_size.x = 64
+			vlan_spin.value_changed.connect(func(v):
+				sw.set_port_vlan(port_name, int(v))
+				if EventBus: EventBus.device_updated.emit(sw.id)
+			)
+			vlan_grid.add_child(vlan_spin)
+			var trunk_chk = CheckBox.new()
+			trunk_chk.button_pressed = sw.is_trunk(port_name)
+			trunk_chk.toggled.connect(func(p):
+				sw.set_trunk(port_name, p)
+			)
+			vlan_grid.add_child(trunk_chk)
+			vlan_grid.add_child(Control.new())
+		_content.add_child(HSeparator.new())
+
 	_section_header("NETWORK INTERFACES")
 	for iface in dev.network_interfaces.values():
 		var if_box = VBoxContainer.new()

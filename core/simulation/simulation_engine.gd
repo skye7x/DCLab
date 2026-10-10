@@ -123,6 +123,11 @@ func _find_dhcp_offer(device_id: String, iface_name: String, _depth: int = 0, _v
 				var next_id = other_conn.get_other_device_id(other_id)
 				if next_id == device_id or _visited.has(next_id):
 					continue
+				# VLAN check: the DHCP request enters the switch via conn's port on the switch
+				var switch_ingress = conn.source_interface_name if conn.source_device_id == other_id else conn.dest_interface_name
+				var switch_egress = other_conn.source_interface_name if other_conn.source_device_id == other_id else other_conn.dest_interface_name
+				if other.has_method("can_forward_between") and not other.can_forward_between(switch_ingress, switch_egress):
+					continue
 				var next_dev = get_device(next_id)
 				if not next_dev:
 					continue
