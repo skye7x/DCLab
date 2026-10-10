@@ -345,7 +345,10 @@ func _cmd_ping(args: Array) -> String:
 		
 	var out = "PING %s (%s) 56(84) bytes of data.\n" % [target_ip, target_ip]
 	for r in res.results:
-		out += "64 bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n" % [target_ip, r.seq, r.ttl, r.time_ms]
+		if r.get("lost", false):
+			out += "no reply from %s: icmp_seq=%d\n" % [target_ip, r.seq]
+		else:
+			out += "64 bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n" % [target_ip, r.seq, r.ttl, r.time_ms]
 		
 	out += "\n--- %s ping statistics ---\n" % target_ip
 	out += "%d packets transmitted, %d received, %d%% packet loss" % [

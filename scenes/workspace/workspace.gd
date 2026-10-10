@@ -108,6 +108,11 @@ func _input(event: InputEvent) -> void:
 					else:
 						cancel_connection()
 				elif clicked_dev_id == "":
+					# Check if clicking near a connection line → open link config
+					var link_at = get_link_at_position(get_global_mouse_position())
+					if link_at:
+						_open_link_config(link_at.id)
+						return
 					if not Input.is_key_pressed(KEY_SHIFT) and not Input.is_key_pressed(KEY_CTRL):
 						clear_selection()
 					_is_selecting_rect = true
@@ -338,6 +343,40 @@ func get_device_at_position(pos: Vector2) -> String:
 		if hit_rect.has_point(pos):
 			return id
 	return ""
+
+func get_link_at_position(pos: Vector2, max_dist: float = 12.0):
+	var best_link = null
+	var best_dist = max_dist
+	for link_id in connection_lines:
+		var cline = connection_lines[link_id]
+		if not cline or cline.get_point_count() < 2:
+			continue
+		var a = cline.get_point_position(0)
+		var b = cline.get_point_position(1)
+		var d = _dist_point_to_segment(pos, a, b)
+		if d < best_dist:
+			best_dist = d
+			best_link = cline.link_ref
+	return best_link
+
+func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab = b - a
+	var len_sq = ab.length_squared()
+	if len_sq < 0.0001:
+		return p.distance_to(a)
+	var t = clampf((p - a).dot(ab) / len_sq, 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+func _open_link_config(link_id: String) -> void:
+	var dlg_class = load("res://scenes/dialogs/link_config_dialog.gd")
+	if not dlg_class:
+		return
+	var win = Window.new()
+	win.set_script(dlg_class)
+	get_tree().root.add_child(win)
+	if win.has_method("setup"):
+		win.setup(link_id)
+	win.popup_centered()
 
 func zoom_to_fit() -> void:
 	if device_nodes.is_empty():

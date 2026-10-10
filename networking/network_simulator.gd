@@ -48,15 +48,32 @@ func ping(source_device_id: String, dest_ip: String, count: int = 4) -> Dictiona
 					dev.nat_translate_outbound(src_ip)
 				
 	var hop_count = max(1, path.size() - 1)
-	var base_latency = hop_count * 1.5
+	# Compute latency from actual link latencies along the path
+	var base_latency = 0.0
+	for i in range(path.size() - 1):
+		var l = engine.get_link_between(path[i].device_id, path[i + 1].device_id)
+		base_latency += l.latency_ms if l else 1.0
+	if base_latency <= 0.0:
+		base_latency = hop_count * 1.5
+	
+	# Apply packet loss from links along the path
+	var loss_chance = 0.0
+	for i in range(path.size() - 1):
+		var l = engine.get_link_between(path[i].device_id, path[i + 1].device_id)
+		if l:
+			loss_chance += l.packet_loss_percent
+	loss_chance = minf(loss_chance, 100.0)
 	
 	for i in range(count):
+		if loss_chance > 0.0 and randf() * 100.0 < loss_chance:
+			result.results.append({"seq": i + 1, "time_ms": -1.0, "ttl": 0, "lost": true})
+			continue
 		var time_ms = snapped(base_latency + (i * 0.1), 0.1)
-		result.results.append({"seq": i + 1, "time_ms": time_ms, "ttl": 64 - hop_count})
+		result.results.append({"seq": i + 1, "time_ms": time_ms, "ttl": 64 - hop_count, "lost": false})
 		result.stats.received += 1
 		
-	result.success = true
-	result.stats.lost_percent = 0.0
+	result.success = result.stats.received > 0
+	result.stats.lost_percent = 100.0 * (count - result.stats.received) / count
 	
 	# Record packets for capture view
 	var src_dev = engine.get_device(source_device_id)
