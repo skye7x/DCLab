@@ -217,6 +217,12 @@ func show_workspace(project_name: String = "") -> void:
 	sim_menu.id_pressed.connect(_on_sim_menu_pressed)
 	_menu_bar.add_child(sim_menu)
 	
+	var tools_menu = PopupMenu.new()
+	tools_menu.name = "Tools"
+	tools_menu.add_item("Subnet Calculator…", 0)
+	tools_menu.id_pressed.connect(_on_tools_menu_pressed)
+	_menu_bar.add_child(tools_menu)
+	
 	var help_menu = PopupMenu.new()
 	help_menu.name = "Help"
 	help_menu.add_item("Instructions…", 1)
@@ -386,6 +392,16 @@ func _on_view_menu_pressed(id: int) -> void:
 		3:
 			if _workspace and "_camera" in _workspace and _workspace._camera:
 				_workspace._camera.reset_view()
+
+func _on_tools_menu_pressed(id: int) -> void:
+	match id:
+		0:
+			var calc_class = load("res://scenes/dialogs/subnet_calculator.gd")
+			if calc_class:
+				var win = Window.new()
+				win.set_script(calc_class)
+				get_tree().root.add_child(win)
+				win.popup_centered()
 
 func _on_sim_menu_pressed(id: int) -> void:
 	match id:
