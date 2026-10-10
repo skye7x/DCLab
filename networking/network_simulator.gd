@@ -48,13 +48,19 @@ func ping(source_device_id: String, dest_ip: String, count: int = 4) -> Dictiona
 					dev.nat_translate_outbound(src_ip)
 				
 	var hop_count = max(1, path.size() - 1)
-	# Compute latency from actual link latencies along the path
+	# Compute latency from actual link latencies along the path (with congestion penalty)
 	var base_latency = 0.0
 	for i in range(path.size() - 1):
 		var l = engine.get_link_between(path[i].device_id, path[i + 1].device_id)
-		base_latency += l.latency_ms if l else 1.0
+		base_latency += l.get_congested_latency() if l else 1.0
 	if base_latency <= 0.0:
 		base_latency = hop_count * 1.5
+	
+	# Record traffic on each link for utilization tracking
+	for i in range(path.size() - 1):
+		var l = engine.get_link_between(path[i].device_id, path[i + 1].device_id)
+		if l:
+			l.record_traffic(84 * count * 2)  # request+reply per packet
 	
 	# Apply packet loss from links along the path
 	var loss_chance = 0.0

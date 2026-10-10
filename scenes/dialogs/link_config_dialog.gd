@@ -6,6 +6,8 @@ var _lat_spin: SpinBox
 var _loss_spin: SpinBox
 var _enable_chk: CheckButton
 var _info_lbl: Label
+var _util_lbl: Label
+var _util_timer: Timer
 
 func setup(link_id: String) -> void:
 	_link_id = link_id
@@ -47,6 +49,17 @@ func _ready() -> void:
 	_info_lbl.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
 	vb.add_child(_info_lbl)
 	_refresh_info(link)
+
+	_util_lbl = Label.new()
+	_util_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 0.6))
+	vb.add_child(_util_lbl)
+
+	_util_timer = Timer.new()
+	_util_timer.wait_time = 0.5
+	_util_timer.autostart = true
+	_util_timer.timeout.connect(_refresh_util)
+	add_child(_util_timer)
+	_refresh_util()
 
 	_enable_chk = CheckButton.new()
 	_enable_chk.text = "Link enabled"
@@ -113,6 +126,16 @@ func _refresh_info(link) -> void:
 		src.display_name if src else "?", link.source_interface_name,
 		dst.display_name if dst else "?", link.dest_interface_name,
 		link.id
+	]
+
+func _refresh_util() -> void:
+	var link = _get_link()
+	if not link or not _util_lbl:
+		return
+	var util = link.get_utilization()
+	var eff_lat = link.get_congested_latency()
+	_util_lbl.text = "Utilization: %.1f%%  |  Effective latency: %.1f ms  |  Total transferred: %d KB" % [
+		util * 100.0, eff_lat, link.bytes_transferred / 1024
 	]
 
 func _on_apply() -> void:
