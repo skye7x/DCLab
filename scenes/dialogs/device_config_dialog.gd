@@ -123,6 +123,47 @@ func _rebuild() -> void:
 			for r in routes:
 				var gw = r.gateway if r.gateway != "" else "(direct)"
 				_content.add_child(_field_label("  %s/%d via %s [%s]" % [r.network, r.cidr, gw, r.interface_name]))
+
+		var nat_chk = CheckButton.new()
+		nat_chk.text = "NAT (masquerade private clients out %s)" % router.wan_interface
+		nat_chk.button_pressed = router.nat_enabled
+		nat_chk.toggled.connect(func(p):
+			router.nat_enabled = p
+			if EventBus: EventBus.device_updated.emit(router.id)
+		)
+		_content.add_child(nat_chk)
+
+		var wan_row = HBoxContainer.new()
+		wan_row.add_theme_constant_override("separation", 6)
+		var wan_lbl = Label.new()
+		wan_lbl.text = "WAN interface:"
+		wan_row.add_child(wan_lbl)
+		var wan_opt = OptionButton.new()
+		for key in router.network_interfaces:
+			wan_opt.add_item(key)
+			if key == router.wan_interface:
+				wan_opt.select(wan_opt.item_count - 1)
+		wan_opt.item_selected.connect(func(idx):
+			router.wan_interface = wan_opt.get_item_text(idx)
+		)
+		wan_row.add_child(wan_opt)
+		_content.add_child(wan_row)
+
+		if router.nat_table.size() > 0:
+			var nl = Label.new()
+			nl.text = "NAT translations (%d):" % router.nat_table.size()
+			nl.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
+			_content.add_child(nl)
+			for internal_ip in router.nat_table:
+				var entry = router.nat_table[internal_ip]
+				_content.add_child(_field_label("  %s -> %s  (%d pkts)" % [internal_ip, entry.external_ip, int(entry.hits)]))
+			var nat_clear_btn = Button.new()
+			nat_clear_btn.text = " Clear NAT table "
+			nat_clear_btn.pressed.connect(func():
+				router.nat_clear()
+				_rebuild()
+			)
+			_content.add_child(nat_clear_btn)
 		_content.add_child(HSeparator.new())
 
 	if dev is FirewallDevice:

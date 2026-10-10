@@ -6,6 +6,9 @@ var dhcp_enabled: bool = true
 var dhcp_pool_start: int = 100
 var dhcp_pool_end: int = 199
 var dhcp_leases: Dictionary = {}
+var nat_enabled: bool = false
+var wan_interface: String = "eth0"
+var nat_table: Dictionary = {}   # internal_ip -> {"external_ip": String, "hits": int}
 
 func _init(p_id: String = "", p_name: String = "Router") -> void:
 	super(p_id, p_name, "router")
@@ -25,6 +28,38 @@ func route_packet(dest_ip: String) -> Dictionary:
 	if routing_table:
 		return routing_table.find_route(dest_ip)
 	return {}
+
+static func is_private_ip(ip: String) -> bool:
+	if ip.begins_with("10."):
+		return true
+	if ip.begins_with("192.168."):
+		return true
+	if ip.begins_with("172."):
+		var second = ip.split(".")[1].to_int()
+		return second >= 16 and second <= 31
+	return false
+
+func nat_translate_outbound(src_ip: String) -> String:
+	if not nat_enabled:
+		return src_ip
+	var wan = get_interface(wan_interface)
+	if not wan or wan.ipv4_address == "":
+		return src_ip
+	if not nat_table.has(src_ip):
+		nat_table[src_ip] = {"external_ip": wan.ipv4_address, "hits": 0}
+	nat_table[src_ip]["hits"] = int(nat_table[src_ip]["hits"]) + 1
+	return wan.ipv4_address
+
+func nat_translate_inbound(dest_ip: String) -> String:
+	if not nat_enabled:
+		return dest_ip
+	for internal_ip in nat_table:
+		if nat_table[internal_ip].external_ip == dest_ip:
+			return internal_ip
+	return dest_ip
+
+func nat_clear() -> void:
+	nat_table.clear()
 
 func auto_generate_routes() -> void:
 	if not routing_table:
@@ -76,6 +111,9 @@ func to_dict() -> Dictionary:
 	dict["dhcp_pool_start"] = dhcp_pool_start
 	dict["dhcp_pool_end"] = dhcp_pool_end
 	dict["dhcp_leases"] = dhcp_leases.duplicate()
+	dict["nat_enabled"] = nat_enabled
+	dict["wan_interface"] = wan_interface
+	dict["nat_table"] = nat_table.duplicate(true)
 	return dict
 
 func from_dict(data: Dictionary) -> void:
@@ -88,3 +126,6 @@ func from_dict(data: Dictionary) -> void:
 	dhcp_pool_start = data.get("dhcp_pool_start", 100)
 	dhcp_pool_end = data.get("dhcp_pool_end", 199)
 	dhcp_leases = data.get("dhcp_leases", {})
+	nat_enabled = data.get("nat_enabled", false)
+	wan_interface = data.get("wan_interface", "eth0")
+	nat_table = data.get("nat_table", {})

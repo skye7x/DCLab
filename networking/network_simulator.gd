@@ -33,13 +33,19 @@ func ping(source_device_id: String, dest_ip: String, count: int = 4) -> Dictiona
 	if path.is_empty():
 		return result
 		
-	# Check firewall on path
+	# Check firewall on path and apply NAT at routers
 	for hop in path:
 		var dev = engine.get_device(hop.device_id)
 		if dev is FirewallDevice:
 			var allowed = dev.check_packet("icmp", "any", dest_ip, -1)
 			if not allowed:
 				return result
+		elif dev is RouterDevice and dev.nat_enabled:
+			var src_dev = engine.get_device(source_device_id)
+			if src_dev:
+				var src_ip = _get_primary_ip(src_dev)
+				if src_ip != "" and RouterDevice.is_private_ip(src_ip):
+					dev.nat_translate_outbound(src_ip)
 				
 	var hop_count = max(1, path.size() - 1)
 	var base_latency = hop_count * 1.5
@@ -111,6 +117,12 @@ func _find_device_by_ip(ip: String):
 			if iface.ipv4_address == ip and iface.is_enabled:
 				return dev
 	return null
+
+func _get_primary_ip(dev) -> String:
+	for iface in dev.network_interfaces.values():
+		if iface.ipv4_address != "" and iface.is_enabled:
+			return iface.ipv4_address
+	return ""
 
 func _is_on_same_subnet(ip1: String, mask: String, ip2: String) -> bool:
 	return IPv4Address.is_same_subnet(ip1, ip2, mask)

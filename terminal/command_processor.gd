@@ -40,6 +40,7 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["mount"] = _cmd_mount
 	commands["traceroute"] = _cmd_traceroute
 	commands["tracert"] = _cmd_traceroute
+	commands["nat"] = _cmd_nat
 
 func _get_engine():
 	if engine_ref:
@@ -83,7 +84,7 @@ func _cmd_help(args: Array) -> String:
 	var output = "Available commands:\n"
 	output += "  Files:   help clear pwd ls cd cat mkdir touch rm echo\n"
 	output += "  System:  whoami hostname ps kill df mount\n"
-	output += "  Network: ip ifconfig route ping curl traceroute\n"
+	output += "  Network: ip ifconfig route ping curl traceroute nat\n"
 	output += "  DHCP:    dhclient <iface>        request an address\n"
 	output += "  IP set:  ip addr add <ip>/<cidr> dev <iface>\n"
 	output += "           ip addr del dev <iface>\n"
@@ -599,3 +600,42 @@ func _get_iface_ip_for_path(dev, path: Array, idx: int) -> String:
 			if iface.ipv4_address != "" and iface.is_enabled:
 				return iface.ipv4_address
 	return "0.0.0.0"
+
+func _cmd_nat(args: Array) -> String:
+	var engine = _get_engine()
+	if not engine: return "Error"
+	var device = engine.get_device(device_id)
+	if not device or not (device is RouterDevice):
+		return "nat: not a router"
+	var router = device as RouterDevice
+	var action = args[1] if args.size() > 1 else "show"
+	match action:
+		"on":
+			router.nat_enabled = true
+			_notify_device_updated()
+			return "NAT enabled (WAN: %s)" % router.wan_interface
+		"off":
+			router.nat_enabled = false
+			_notify_device_updated()
+			return "NAT disabled"
+		"clear":
+			router.nat_clear()
+			return "NAT table cleared"
+		"wan":
+			if args.size() < 3:
+				return "Usage: nat wan <iface>"
+			if not router.network_interfaces.has(args[2]):
+				return "No such interface: %s" % args[2]
+			router.wan_interface = args[2]
+			return "WAN interface set to %s" % args[2]
+		"show", _:
+			var out = "NAT is %s (WAN: %s)\n" % ["enabled" if router.nat_enabled else "disabled", router.wan_interface]
+			if router.nat_table.is_empty():
+				out += "No translations"
+			else:
+				out += "INTERNAL        EXTERNAL        HITS\n"
+				for internal_ip in router.nat_table:
+					var e = router.nat_table[internal_ip]
+					out += "%-15s %-15s %d\n" % [internal_ip, e.external_ip, int(e.hits)]
+			return out.strip_edges()
+	return ""
