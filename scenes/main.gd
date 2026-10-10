@@ -220,6 +220,7 @@ func show_workspace(project_name: String = "") -> void:
 	var tools_menu = PopupMenu.new()
 	tools_menu.name = "Tools"
 	tools_menu.add_item("Subnet Calculator…", 0)
+	tools_menu.add_item("Packet Capture…", 1)
 	tools_menu.id_pressed.connect(_on_tools_menu_pressed)
 	_menu_bar.add_child(tools_menu)
 	
@@ -400,6 +401,13 @@ func _on_tools_menu_pressed(id: int) -> void:
 			if calc_class:
 				var win = Window.new()
 				win.set_script(calc_class)
+				get_tree().root.add_child(win)
+				win.popup_centered()
+		1:
+			var cap_class = load("res://scenes/dialogs/packet_capture_dialog.gd")
+			if cap_class:
+				var win = Window.new()
+				win.set_script(cap_class)
 				get_tree().root.add_child(win)
 				win.popup_centered()
 

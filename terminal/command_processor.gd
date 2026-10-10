@@ -44,6 +44,7 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["nslookup"] = _cmd_nslookup
 	commands["dig"] = _cmd_dig
 	commands["dns"] = _cmd_dns
+	commands["pcap"] = _cmd_pcap
 
 func _get_engine():
 	if engine_ref:
@@ -702,6 +703,64 @@ func _cmd_dig(args: Array) -> String:
 func _cmd_dns(args: Array) -> String:
 	if args.size() < 2:
 		return "Usage: dns add <hostname> <ip> | dns rm <hostname> | dns list"
+	var engine = _get_engine()
+	if not engine: return "Error"
+	var device = engine.get_device(device_id)
+	if not device or not ("services" in device):
+		return "No DNS service on this device"
+	var dns = null
+	for s in device.services:
+		if s is DnsService:
+			dns = s
+			break
+	if not dns:
+		return "No DNS service installed on this device"
+	match args[1]:
+		"add":
+			if args.size() < 4:
+				return "Usage: dns add <hostname> <ip>"
+			if not IPv4Address.is_valid(args[3]):
+				return "Invalid IP: %s" % args[3]
+			dns.add_record(args[2], args[3])
+			_notify_device_updated()
+			return "Added %s -> %s" % [args[2], args[3]]
+		"rm":
+			if args.size() < 3:
+				return "Usage: dns rm <hostname>"
+			if dns.remove_record(args[2]):
+				_notify_device_updated()
+				return "Removed %s" % args[2]
+			return "No such record: %s" % args[2]
+		"list":
+			if dns.records.is_empty():
+				return "No records"
+			var out = "HOSTNAME              IP\n"
+			for h in dns.records:
+				out += "%-20s %s\n" % [h, dns.records[h]]
+			return out.strip_edges()
+	return "Usage: dns add <hostname> <ip> | dns rm <hostname> | dns list"
+
+func _cmd_pcap(args: Array) -> String:
+	var action = args[1] if args.size() > 1 else "show"
+	match action:
+		"start":
+			PacketCapture.start_capture()
+			return "Capture started"
+		"stop":
+			PacketCapture.stop_capture()
+			return "Capture stopped"
+		"clear":
+			PacketCapture.clear()
+			return "Capture cleared"
+		"show", _:
+			var packets = PacketCapture.get_packets()
+			if packets.is_empty():
+				return "No packets captured (use 'pcap start', generate traffic, then 'pcap show')"
+			var out = "TIME     SOURCE           DEST             PROTO  SIZE  INFO\n"
+			for p in packets:
+				out += "%7.2f  %-15s %-15s %-5s  %4d  %s\n" % [p.time, p.src, p.dst, p.protocol, p.size, p.info]
+			return out.strip_edges()
+	return ""
 	var engine = _get_engine()
 	if not engine: return "Error"
 	var device = engine.get_device(device_id)

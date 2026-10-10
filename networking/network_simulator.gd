@@ -58,6 +58,14 @@ func ping(source_device_id: String, dest_ip: String, count: int = 4) -> Dictiona
 	result.success = true
 	result.stats.lost_percent = 0.0
 	
+	# Record packets for capture view
+	var src_dev = engine.get_device(source_device_id)
+	if src_dev:
+		var src_ip = _get_primary_ip(src_dev)
+		for r in result.results:
+			PacketCapture.record(src_ip, dest_ip, "ICMP", 84, "echo request seq=%d" % r.seq)
+			PacketCapture.record(dest_ip, src_ip, "ICMP", 84, "echo reply seq=%d" % r.seq)
+	
 	# Trigger packet animations along the path
 	_animate_path_traffic(path, "ICMP")
 	
@@ -98,13 +106,19 @@ func http_request(source_device_id: String, dest_ip: String, port: int = 80, pat
 			if s.port == port and s.is_running:
 				var req_data = {"path": path, "method": "GET"}
 				var response = s.handle_request(req_data)
+				var src_dev2 = engine.get_device(source_device_id)
+				var src_ip2 = _get_primary_ip(src_dev2) if src_dev2 else ""
 				if response is Dictionary:
 					var status = response.get("status", 200)
 					var body = response.get("body", "")
+					PacketCapture.record(src_ip2, dest_ip, "TCP", 64, "SYN %d→%d" % [0, port])
+					PacketCapture.record(dest_ip, src_ip2, "TCP", int(str(body).length()) + 64, "SYN-ACK %d→%d HTTP %d" % [port, 0, status])
 					if tcp_check.has("path"):
 						_animate_path_traffic(tcp_check.path, "HTTP")
 					return {"success": status == 200, "status_code": status, "body": str(body), "error": "" if status == 200 else str(body)}
 				else:
+					PacketCapture.record(src_ip2, dest_ip, "TCP", 64, "SYN %d→%d" % [0, port])
+					PacketCapture.record(dest_ip, src_ip2, "TCP", 64, "SYN-ACK %d→%d" % [port, 0])
 					if tcp_check.has("path"):
 						_animate_path_traffic(tcp_check.path, "HTTP")
 					return {"success": true, "status_code": 200, "body": str(response), "error": ""}
