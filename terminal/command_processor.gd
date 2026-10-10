@@ -38,6 +38,8 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["shares"] = _cmd_shares
 	commands["share"] = _cmd_share
 	commands["mount"] = _cmd_mount
+	commands["traceroute"] = _cmd_traceroute
+	commands["tracert"] = _cmd_traceroute
 
 func _get_engine():
 	if engine_ref:
@@ -81,7 +83,7 @@ func _cmd_help(args: Array) -> String:
 	var output = "Available commands:\n"
 	output += "  Files:   help clear pwd ls cd cat mkdir touch rm echo\n"
 	output += "  System:  whoami hostname ps kill df mount\n"
-	output += "  Network: ip ifconfig route ping curl\n"
+	output += "  Network: ip ifconfig route ping curl traceroute\n"
 	output += "  DHCP:    dhclient <iface>        request an address\n"
 	output += "  IP set:  ip addr add <ip>/<cidr> dev <iface>\n"
 	output += "           ip addr del dev <iface>\n"
@@ -553,3 +555,47 @@ func _cmd_mount(args: Array) -> String:
 			return out.strip_edges()
 		return "Usage: mount <share>"
 	return "mount: /mnt/%s: share not found" % args[1]
+
+func _cmd_traceroute(args: Array) -> String:
+	if args.size() < 2:
+		return "Usage: traceroute <ip>"
+	var target_ip = args[args.size() - 1]
+	var engine = _get_engine()
+	if not engine or not engine.network_sim:
+		return "Error: Network simulator not available"
+	var path = engine.network_sim.find_path(device_id, target_ip)
+	if path.is_empty():
+		return "traceroute to %s, 30 hops max\n* * *\ntraceroute: no route to host" % target_ip
+	var out = "traceroute to %s (%s), 30 hops max\n" % [target_ip, target_ip]
+	var cumulative_ms := 0.0
+	for i in range(path.size()):
+		var hop_dev = engine.get_device(path[i].device_id)
+		if not hop_dev:
+			continue
+		var hop_ip = _get_iface_ip_for_path(hop_dev, path, i)
+		var hop_name = hop_dev.display_name if hop_dev.display_name != "" else hop_dev.id
+		var link_ms := 0.0
+		if i > 0:
+			var link = engine.get_link_between(path[i - 1].device_id, path[i].device_id)
+			if link:
+				link_ms = link.latency_ms
+			else:
+				link_ms = 1.0
+		cumulative_ms += link_ms + 0.2
+		out += " %2d  %s (%s)  %.3f ms  %.3f ms  %.3f ms\n" % [
+			i + 1, hop_name, hop_ip, cumulative_ms, cumulative_ms + 0.1, cumulative_ms + 0.2
+		]
+	return out.strip_edges()
+
+func _get_iface_ip_for_path(dev, path: Array, idx: int) -> String:
+	var iface_name: String = path[idx].get("interface_name", "")
+	if iface_name != "" and "network_interfaces" in dev and dev.network_interfaces.has(iface_name):
+		var iface = dev.network_interfaces[iface_name]
+		if iface.ipv4_address != "":
+			return iface.ipv4_address
+	if "network_interfaces" in dev:
+		for key in dev.network_interfaces:
+			var iface = dev.network_interfaces[key]
+			if iface.ipv4_address != "" and iface.is_enabled:
+				return iface.ipv4_address
+	return "0.0.0.0"

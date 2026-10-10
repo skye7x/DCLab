@@ -160,6 +160,12 @@ func get_connections_for_device(device_id: String) -> Array:
 			res.append(conn)
 	return res
 
+func get_link_between(device_id_a: String, device_id_b: String) -> EthernetLink:
+	for conn in connections:
+		if (conn.source_device_id == device_id_a and conn.dest_device_id == device_id_b) or (conn.source_device_id == device_id_b and conn.dest_device_id == device_id_a):
+			return conn
+	return null
+
 func start_simulation() -> void:
 	is_running = true
 	SimTime.unpause()
