@@ -223,7 +223,7 @@ func _rebuild_inspector() -> void:
 		_content.add_child(sh_lbl)
 		for s in stor.shares:
 			var sl = Label.new()
-			sl.text = "  %s — %d MB" % [s.name, int(s.size_mb)]
+			sl.text = "  %s - %d MB" % [s.name, int(s.size_mb)]
 			sl.add_theme_font_size_override("font_size", 10)
 			sl.add_theme_color_override("font_color", Color(0.55, 0.6, 0.7))
 			_content.add_child(sl)

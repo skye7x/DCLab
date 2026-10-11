@@ -18,5 +18,5 @@ func get_ram_usage() -> float:
 	var total: float = super.get_ram_usage()
 	for s in services:
 		if s.is_running:
-			total += s.ram_mb
+			total += s.ram_usage_mb
 	return total

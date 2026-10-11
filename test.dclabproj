@@ -1,0 +1,818 @@
+{
+  "connections": [],
+  "devices": [
+    {
+      "arp_table": {
+        "entries": {}
+      },
+      "device_type": "router",
+      "dhcp_enabled": true,
+      "dhcp_leases": {},
+      "dhcp_pool_end": 199,
+      "dhcp_pool_start": 100,
+      "display_name": "Router",
+      "id": "dev_002",
+      "is_enabled": true,
+      "is_powered_on": true,
+      "metadata": {},
+      "nat_enabled": false,
+      "nat_table": {},
+      "network_interfaces": {
+        "eth0": {
+          "device_id": "dev_002",
+          "gateway": "192.168.22.1",
+          "iface_name": "eth0",
+          "ipv4_address": "192.168.22.1",
+          "is_enabled": true,
+          "is_linked": false,
+          "mac_address": "02:EC:3C:57:C6:5B",
+          "rx_bytes": 0,
+          "subnet_mask": "",
+          "tx_bytes": 0
+        },
+        "eth1": {
+          "device_id": "dev_002",
+          "gateway": "",
+          "iface_name": "eth1",
+          "ipv4_address": "",
+          "is_enabled": true,
+          "is_linked": false,
+          "mac_address": "02:33:04:97:80:95",
+          "rx_bytes": 0,
+          "subnet_mask": "",
+          "tx_bytes": 0
+        }
+      },
+      "position": {
+        "x": -96.0,
+        "y": -224.0
+      },
+      "routing_table": {
+        "routes": []
+      },
+      "wan_interface": "eth0"
+    },
+    {
+      "arp_table": {
+        "entries": {}
+      },
+      "cpu_cores": 2,
+      "device_type": "pc",
+      "display_name": "PC-1",
+      "id": "dev_003",
+      "is_enabled": true,
+      "is_powered_on": true,
+      "metadata": {},
+      "network_interfaces": {
+        "eth0": {
+          "device_id": "dev_003",
+          "gateway": "192.168.22.1",
+          "iface_name": "eth0",
+          "ipv4_address": "192.168.22.2",
+          "is_enabled": true,
+          "is_linked": false,
+          "mac_address": "02:73:E4:6C:5F:CA",
+          "rx_bytes": 0,
+          "subnet_mask": "",
+          "tx_bytes": 0
+        }
+      },
+      "operating_system": {
+        "_next_pid": 3,
+        "aliases": {},
+        "cron_jobs": [],
+        "current_user_name": "root",
+        "device_id": "dev_003",
+        "env_vars": {
+          "HOME": "/root",
+          "HOSTNAME": "PC",
+          "PATH": "/bin:/usr/bin",
+          "USER": "root"
+        },
+        "file_system": {
+          "root": {
+            "children": {
+              "bin": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "bin",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "etc": {
+                "children": {
+                  "hostname": {
+                    "children": {},
+                    "content": "PC\n",
+                    "is_directory": false,
+                    "node_name": "hostname",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 3
+                  },
+                  "hosts": {
+                    "children": {},
+                    "content": "127.0.0.1 localhost\n",
+                    "is_directory": false,
+                    "node_name": "hosts",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 20
+                  },
+                  "resolv.conf": {
+                    "children": {},
+                    "content": "nameserver 8.8.8.8\n",
+                    "is_directory": false,
+                    "node_name": "resolv.conf",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 19
+                  },
+                  "services": {
+                    "children": {},
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "services",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "etc",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "home": {
+                "children": {
+                  "admin": {
+                    "children": {},
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "admin",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "home",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "proc": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "proc",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "tmp": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "tmp",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "var": {
+                "children": {
+                  "log": {
+                    "children": {
+                      "syslog": {
+                        "children": {},
+                        "content": "",
+                        "is_directory": false,
+                        "node_name": "syslog",
+                        "owner": "root",
+                        "permissions": "rwxr-xr-x",
+                        "size_bytes": 0
+                      }
+                    },
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "log",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "var",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "www": {
+                "children": {
+                  "index.html": {
+                    "children": {},
+                    "content": "<html><body><h1>Hello from DCLab</h1></body></html>",
+                    "is_directory": false,
+                    "node_name": "index.html",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 51
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "www",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              }
+            },
+            "content": "",
+            "is_directory": true,
+            "node_name": "/",
+            "owner": "root",
+            "permissions": "rwxr-xr-x",
+            "size_bytes": 0
+          }
+        },
+        "groups": {},
+        "hostname": "PC",
+        "os_name": "DCLinux",
+        "processes": [
+          {
+            "cpu_percent": 0.1,
+            "is_running": true,
+            "owner": "root",
+            "pid": 1,
+            "process_name": "init",
+            "ram_mb": 5.0
+          },
+          {
+            "cpu_percent": 0.1,
+            "is_running": true,
+            "owner": "root",
+            "pid": 2,
+            "process_name": "syslog",
+            "ram_mb": 2.0
+          }
+        ],
+        "type": "LinuxSystem",
+        "users": [
+          {
+            "home_directory": "/root",
+            "is_root": true,
+            "password_hash": "",
+            "shell": "/bin/dcsh",
+            "username": "root"
+          }
+        ]
+      },
+      "position": {
+        "x": -224.0,
+        "y": -96.0
+      },
+      "ram_mb": 4096,
+      "services": [
+        {
+          "auto_start": false,
+          "device_id": "dev_003",
+          "is_running": true,
+          "port": 22,
+          "protocol": "tcp",
+          "service_type": "ssh"
+        }
+      ],
+      "storage_mb": 256000
+    },
+    {
+      "arp_table": {
+        "entries": {}
+      },
+      "cpu_cores": 2,
+      "device_type": "pc",
+      "display_name": "PC-2",
+      "id": "dev_004",
+      "is_enabled": true,
+      "is_powered_on": true,
+      "metadata": {},
+      "network_interfaces": {
+        "eth0": {
+          "device_id": "dev_004",
+          "gateway": "192.168.22.1",
+          "iface_name": "eth0",
+          "ipv4_address": "192.168.22.3",
+          "is_enabled": true,
+          "is_linked": false,
+          "mac_address": "02:C0:A6:7F:E4:A5",
+          "rx_bytes": 0,
+          "subnet_mask": "",
+          "tx_bytes": 0
+        }
+      },
+      "operating_system": {
+        "_next_pid": 3,
+        "aliases": {},
+        "cron_jobs": [],
+        "current_user_name": "root",
+        "device_id": "dev_004",
+        "env_vars": {
+          "HOME": "/root",
+          "HOSTNAME": "PC",
+          "PATH": "/bin:/usr/bin",
+          "USER": "root"
+        },
+        "file_system": {
+          "root": {
+            "children": {
+              "bin": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "bin",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "etc": {
+                "children": {
+                  "hostname": {
+                    "children": {},
+                    "content": "PC\n",
+                    "is_directory": false,
+                    "node_name": "hostname",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 3
+                  },
+                  "hosts": {
+                    "children": {},
+                    "content": "127.0.0.1 localhost\n",
+                    "is_directory": false,
+                    "node_name": "hosts",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 20
+                  },
+                  "resolv.conf": {
+                    "children": {},
+                    "content": "nameserver 8.8.8.8\n",
+                    "is_directory": false,
+                    "node_name": "resolv.conf",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 19
+                  },
+                  "services": {
+                    "children": {},
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "services",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "etc",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "home": {
+                "children": {
+                  "admin": {
+                    "children": {},
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "admin",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "home",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "proc": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "proc",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "tmp": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "tmp",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "var": {
+                "children": {
+                  "log": {
+                    "children": {
+                      "syslog": {
+                        "children": {},
+                        "content": "",
+                        "is_directory": false,
+                        "node_name": "syslog",
+                        "owner": "root",
+                        "permissions": "rwxr-xr-x",
+                        "size_bytes": 0
+                      }
+                    },
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "log",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "var",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "www": {
+                "children": {
+                  "index.html": {
+                    "children": {},
+                    "content": "<html><body><h1>Hello from DCLab</h1></body></html>",
+                    "is_directory": false,
+                    "node_name": "index.html",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 51
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "www",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              }
+            },
+            "content": "",
+            "is_directory": true,
+            "node_name": "/",
+            "owner": "root",
+            "permissions": "rwxr-xr-x",
+            "size_bytes": 0
+          }
+        },
+        "groups": {},
+        "hostname": "PC",
+        "os_name": "DCLinux",
+        "processes": [
+          {
+            "cpu_percent": 0.1,
+            "is_running": true,
+            "owner": "root",
+            "pid": 1,
+            "process_name": "init",
+            "ram_mb": 5.0
+          },
+          {
+            "cpu_percent": 0.1,
+            "is_running": true,
+            "owner": "root",
+            "pid": 2,
+            "process_name": "syslog",
+            "ram_mb": 2.0
+          }
+        ],
+        "type": "LinuxSystem",
+        "users": [
+          {
+            "home_directory": "/root",
+            "is_root": true,
+            "password_hash": "",
+            "shell": "/bin/dcsh",
+            "username": "root"
+          }
+        ]
+      },
+      "position": {
+        "x": -96.0,
+        "y": -96.0
+      },
+      "ram_mb": 4096,
+      "services": [
+        {
+          "auto_start": false,
+          "device_id": "dev_004",
+          "is_running": true,
+          "port": 22,
+          "protocol": "tcp",
+          "service_type": "ssh"
+        }
+      ],
+      "storage_mb": 256000
+    },
+    {
+      "arp_table": {
+        "entries": {}
+      },
+      "cpu_cores": 4,
+      "device_type": "server",
+      "display_name": "Server",
+      "id": "dev_005",
+      "is_enabled": true,
+      "is_powered_on": true,
+      "metadata": {},
+      "network_interfaces": {
+        "eth0": {
+          "device_id": "dev_005",
+          "gateway": "192.168.22.1",
+          "iface_name": "eth0",
+          "ipv4_address": "192.168.22.5",
+          "is_enabled": true,
+          "is_linked": false,
+          "mac_address": "02:FE:B8:9C:BE:F9",
+          "rx_bytes": 0,
+          "subnet_mask": "",
+          "tx_bytes": 0
+        }
+      },
+      "operating_system": {
+        "_next_pid": 3,
+        "aliases": {},
+        "cron_jobs": [],
+        "current_user_name": "root",
+        "device_id": "dev_005",
+        "env_vars": {
+          "HOME": "/root",
+          "HOSTNAME": "Server",
+          "PATH": "/bin:/usr/bin",
+          "USER": "root"
+        },
+        "file_system": {
+          "root": {
+            "children": {
+              "bin": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "bin",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "etc": {
+                "children": {
+                  "hostname": {
+                    "children": {},
+                    "content": "Server\n",
+                    "is_directory": false,
+                    "node_name": "hostname",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 7
+                  },
+                  "hosts": {
+                    "children": {},
+                    "content": "127.0.0.1 localhost\n",
+                    "is_directory": false,
+                    "node_name": "hosts",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 20
+                  },
+                  "resolv.conf": {
+                    "children": {},
+                    "content": "nameserver 8.8.8.8\n",
+                    "is_directory": false,
+                    "node_name": "resolv.conf",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 19
+                  },
+                  "services": {
+                    "children": {},
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "services",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "etc",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "home": {
+                "children": {
+                  "admin": {
+                    "children": {},
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "admin",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "home",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "proc": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "proc",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "tmp": {
+                "children": {},
+                "content": "",
+                "is_directory": true,
+                "node_name": "tmp",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "var": {
+                "children": {
+                  "log": {
+                    "children": {
+                      "syslog": {
+                        "children": {},
+                        "content": "",
+                        "is_directory": false,
+                        "node_name": "syslog",
+                        "owner": "root",
+                        "permissions": "rwxr-xr-x",
+                        "size_bytes": 0
+                      }
+                    },
+                    "content": "",
+                    "is_directory": true,
+                    "node_name": "log",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 0
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "var",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              },
+              "www": {
+                "children": {
+                  "index.html": {
+                    "children": {},
+                    "content": "<html><body><h1>Hello from DCLab</h1></body></html>",
+                    "is_directory": false,
+                    "node_name": "index.html",
+                    "owner": "root",
+                    "permissions": "rwxr-xr-x",
+                    "size_bytes": 51
+                  }
+                },
+                "content": "",
+                "is_directory": true,
+                "node_name": "www",
+                "owner": "root",
+                "permissions": "rwxr-xr-x",
+                "size_bytes": 0
+              }
+            },
+            "content": "",
+            "is_directory": true,
+            "node_name": "/",
+            "owner": "root",
+            "permissions": "rwxr-xr-x",
+            "size_bytes": 0
+          }
+        },
+        "groups": {},
+        "hostname": "Server",
+        "os_name": "DCLinux",
+        "processes": [
+          {
+            "cpu_percent": 0.1,
+            "is_running": true,
+            "owner": "root",
+            "pid": 1,
+            "process_name": "init",
+            "ram_mb": 5.0
+          },
+          {
+            "cpu_percent": 0.1,
+            "is_running": true,
+            "owner": "root",
+            "pid": 2,
+            "process_name": "syslog",
+            "ram_mb": 2.0
+          }
+        ],
+        "type": "LinuxSystem",
+        "users": [
+          {
+            "home_directory": "/root",
+            "is_root": true,
+            "password_hash": "",
+            "shell": "/bin/dcsh",
+            "username": "root"
+          }
+        ]
+      },
+      "position": {
+        "x": 32.0,
+        "y": -96.0
+      },
+      "ram_mb": 8192,
+      "services": [
+        {
+          "auto_start": false,
+          "default_document": "index.html",
+          "device_id": "dev_005",
+          "is_running": true,
+          "port": 80,
+          "protocol": "tcp",
+          "service_type": "http",
+          "web_root": "/www"
+        },
+        {
+          "auto_start": false,
+          "device_id": "dev_005",
+          "is_running": true,
+          "port": 53,
+          "protocol": "udp",
+          "records": {},
+          "service_type": "dns",
+          "ttl_default": 300
+        },
+        {
+          "auto_start": false,
+          "device_id": "dev_005",
+          "is_running": true,
+          "port": 22,
+          "protocol": "tcp",
+          "service_type": "ssh"
+        },
+        {
+          "allow_anonymous": true,
+          "allow_upload": false,
+          "auto_start": false,
+          "device_id": "dev_005",
+          "ftp_root": "/ftp",
+          "is_running": true,
+          "port": 21,
+          "protocol": "tcp",
+          "service_type": "ftp"
+        },
+        {
+          "auto_start": false,
+          "device_id": "dev_005",
+          "is_running": true,
+          "mail_root": "/mail",
+          "port": 25,
+          "protocol": "tcp",
+          "service_type": "email"
+        }
+      ],
+      "storage_mb": 512000
+    }
+  ],
+  "project": {
+    "created_at": "2026-10-11T21:00:23",
+    "metadata": {},
+    "modified_at": "2026-10-11T21:03:14",
+    "project_name": "New Project",
+    "version": 1
+  },
+  "version": 1
+}

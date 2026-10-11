@@ -108,7 +108,7 @@ func _rebuild() -> void:
 		return
 
 	if _info_label and "total_capacity_mb" in dev:
-		_info_label.text = "%s — %d GB total, %d MB used, %.1f%%" % [dev.display_name, dev.total_capacity_mb / 1024, dev.used_mb, dev.get_usage_percent()]
+		_info_label.text = "%s - %d GB total, %d MB used, %.1f%%" % [dev.display_name, dev.total_capacity_mb / 1024, dev.used_mb, dev.get_usage_percent()]
 
 	if not ("shares" in dev):
 		return

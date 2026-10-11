@@ -443,7 +443,7 @@ func _show_instructions() -> void:
 	rich.text = """[b]GETTING STARTED[/b]
 1. Click a device in the left [color=#8fb6ff]Device Library[/color], then click on the canvas to place it.
 2. Right-click a device for its menu: [i]Configure…, Open Terminal, Configure IP, Connect, Rename, Duplicate, Power, Delete[/i].
-3. Save your work via [i]File → Save[/i] — projects use the .dclabproj format.
+3. Save your work via [i]File → Save[/i] - projects use the .dclabproj format.
 
 [b]HOW TO CONNECT TWO DEVICES[/b]
 • Right-click a device → [i]Connect[/i], then click the target device. A free interface is picked automatically.
@@ -457,17 +457,17 @@ func _show_instructions() -> void:
 • Changes made in the terminal appear instantly in the Inspector.
 
 [b]TERMINAL COMMANDS[/b]
-[color=#9fe0a0]help[/color]                          — full command list
-[color=#9fe0a0]ip[/color] / [color=#9fe0a0]ifconfig[/color]                   — show interfaces; [color=#9fe0a0]ip addr add <ip>/<cidr> dev <iface>[/color]
-[color=#9fe0a0]dhclient <iface>[/color]              — request a DHCP address
-[color=#9fe0a0]ping <ip> [-c n][/color]              — test connectivity
-[color=#9fe0a0]curl http://<ip>/[/color]              — fetch a web page from a server
-[color=#9fe0a0]route[/color]                          — routing table (routers)
-[color=#9fe0a0]service <name> start|stop[/color]      — manage http/ssh/database
-[color=#9fe0a0]ls, cd, cat, mkdir, touch, rm[/color]  — file system
-[color=#9fe0a0]shares / share add <name> <MB>[/color]  — NAS shares (on storage devices)
-[color=#9fe0a0]df[/color]                            — disk usage
-[color=#9fe0a0]Tab[/color]                           — autocomplete, [color=#9fe0a0]↑/↓[/color] history, [color=#9fe0a0]Ctrl+L[/color] clear
+[color=#9fe0a0]help[/color]                          - full command list
+[color=#9fe0a0]ip[/color] / [color=#9fe0a0]ifconfig[/color]                   - show interfaces; [color=#9fe0a0]ip addr add <ip>/<cidr> dev <iface>[/color]
+[color=#9fe0a0]dhclient <iface>[/color]              - request a DHCP address
+[color=#9fe0a0]ping <ip> [-c n][/color]              - test connectivity
+[color=#9fe0a0]curl http://<ip>/[/color]              - fetch a web page from a server
+[color=#9fe0a0]route[/color]                          - routing table (routers)
+[color=#9fe0a0]service <name> start|stop[/color]      - manage http/ssh/database
+[color=#9fe0a0]ls, cd, cat, mkdir, touch, rm[/color]  - file system
+[color=#9fe0a0]shares / share add <name> <MB>[/color]  - NAS shares (on storage devices)
+[color=#9fe0a0]df[/color]                            - disk usage
+[color=#9fe0a0]Tab[/color]                           - autocomplete, [color=#9fe0a0]↑/↓[/color] history, [color=#9fe0a0]Ctrl+L[/color] clear
 
 [b]NAS / STORAGE[/b]
 • Right-click a NAS → [i]Shares…[/i] to create/remove shares; [i]Format…[/i] wipes data.

@@ -74,7 +74,7 @@ func _rebuild() -> void:
 		idx += 1
 
 	if routes.is_empty():
-		_content.add_child(_mk_label("  (no routes — connected routes are auto-generated on link up)"))
+		_content.add_child(_mk_label("  (no routes - connected routes are auto-generated on link up)"))
 
 	_content.add_child(HSeparator.new())
 	_content.add_child(_mk_label("Add static route:"))

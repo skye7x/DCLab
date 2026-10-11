@@ -1147,7 +1147,7 @@ func _cmd_ssh(args: Array) -> String:
 				has_ssh = true
 				break
 	if not has_ssh:
-		return "ssh: connection refused — sshd not running on %s (try: apt install openssh-server)" % dest_dev.display_name
+		return "ssh: connection refused - sshd not running on %s (try: apt install openssh-server)" % dest_dev.display_name
 	# Check user exists
 	var dest_os = dest_dev.operating_system if "operating_system" in dest_dev else null
 	if not dest_os:
@@ -1155,7 +1155,7 @@ func _cmd_ssh(args: Array) -> String:
 	var login_user = user if user != "" else "root"
 	if not dest_os.get_user(login_user):
 		return "ssh: user '%s' does not exist on %s" % [login_user, dest_dev.display_name]
-	# Switch session — return special marker for the terminal to intercept
+	# Switch session - return special marker for the terminal to intercept
 	return "[SSH_SESSION:%s:%s]" % [dest_dev.id, login_user]
 
 func _cmd_exit(args: Array) -> String:
@@ -1178,10 +1178,10 @@ func _cmd_alias(args: Array) -> String:
 		var alias_name = parts[0].strip_edges()
 		var alias_cmd = parts[1].strip_edges().trim_prefix("'").trim_suffix("'").trim_prefix("\"").trim_suffix("\"")
 		if alias_name.is_empty() or alias_cmd.is_empty():
-			return "alias: invalid syntax — alias name='command'"
+			return "alias: invalid syntax - alias name='command'"
 		os_ref.alias(alias_name, alias_cmd)
 		return ""
-	return "alias: invalid syntax — alias name='command'"
+	return "alias: invalid syntax - alias name='command'"
 
 func _cmd_unalias(args: Array) -> String:
 	if not os_ref:

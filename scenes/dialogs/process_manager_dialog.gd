@@ -82,7 +82,7 @@ func _refresh() -> void:
 		total_ram += p.ram_mb
 		_list.add_item("PID %-6d %-20s CPU %.1f%%  RAM %.1fMB  [%s]" % [p.pid, p.process_name, p.cpu_percent, p.ram_mb, p.owner])
 		_list.set_item_metadata(_list.item_count - 1, p.pid)
-	_info_lbl.text = "%s — %d processes  |  Total CPU %.1f%%  Total RAM %.1f MB" % [os.hostname, procs.size(), total_cpu, total_ram]
+	_info_lbl.text = "%s - %d processes  |  Total CPU %.1f%%  Total RAM %.1f MB" % [os.hostname, procs.size(), total_cpu, total_ram]
 
 func _on_kill() -> void:
 	var os = _get_os()

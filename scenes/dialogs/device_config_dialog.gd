@@ -369,7 +369,7 @@ func _rebuild() -> void:
 		var ip_str = iface.ipv4_address if iface.ipv4_address != "" else "(none)"
 		var mask_str = "/" + str(iface.get_cidr()) if iface.get_cidr() > 0 else ""
 		var ipl = Label.new()
-		ipl.text = "  %s%s  gw %s" % [ip_str, mask_str, iface.gateway if iface.gateway != "" else "—"]
+		ipl.text = "  %s%s  gw %s" % [ip_str, mask_str, iface.gateway if iface.gateway != "" else "-"]
 		ipl.add_theme_font_size_override("font_size", 11)
 		ipl.add_theme_color_override("font_color", Color(0.65, 0.7, 0.8))
 		if_box.add_child(ipl)

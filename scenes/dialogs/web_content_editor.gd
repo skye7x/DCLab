@@ -145,7 +145,7 @@ func _refresh_file_list() -> void:
 		if f is FileNode and not f.is_directory:
 			_file_list.add_item(f.node_name)
 	if files.is_empty():
-		_set_status("/www is empty — click New to create index.html", Color(0.7, 0.7, 0.5))
+		_set_status("/www is empty - click New to create index.html", Color(0.7, 0.7, 0.5))
 	else:
 		_set_status("Loaded %d file(s)" % files.size(), Color(0.5, 0.8, 0.5))
 
