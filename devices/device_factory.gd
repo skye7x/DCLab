@@ -46,6 +46,12 @@ static func create(type: String, id: String, name: String = "") -> Device:
 			var ssh = SshService.new()
 			device.add_service(ssh)
 			ssh.start()
+			var ftp = FtpService.new()
+			device.add_service(ftp)
+			ftp.start()
+			var email = EmailService.new()
+			device.add_service(email)
+			email.start()
 		"storage":
 			device = StorageDevice.new(id, dev_name)
 	return device

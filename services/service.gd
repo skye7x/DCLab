@@ -61,6 +61,10 @@ static func from_dict(data: Dictionary) -> Service:
 			srv = DatabaseService.new()
 		"dns":
 			srv = DnsService.new()
+		"ftp":
+			srv = FtpService.new()
+		"email":
+			srv = EmailService.new()
 		_:
 			srv = Service.new(s_type, data.get("port", 0), data.get("protocol", "tcp"))
 	

@@ -1,0 +1,12 @@
+SCRIPT ERROR: Parse Error: Closing "]" doesn't have an opening counterpart.
+   at: GDScript::reload (res://terminal/command_processor.gd:1241)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://_smoke_f24.gd:11)
+ERROR: Failed to load script "res://terminal/command_processor.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://_smoke_f24.gd:11)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: _ready (res://_smoke_f24.gd:12)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://_smoke_f24.gd:12)

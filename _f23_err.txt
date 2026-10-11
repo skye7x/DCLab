@@ -1,0 +1,12 @@
+SCRIPT ERROR: Parse Error: Expected indented block after function declaration.
+   at: GDScript::reload (res://terminal/command_processor.gd:1333)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://_smoke_f23.gd:15)
+ERROR: Failed to load script "res://terminal/command_processor.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://_smoke_f23.gd:15)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: _ready (res://_smoke_f23.gd:17)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://_smoke_f23.gd:17)

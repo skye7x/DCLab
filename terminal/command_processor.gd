@@ -63,6 +63,8 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["env"] = _cmd_env
 	commands["journalctl"] = _cmd_journalctl
 	commands["tail"] = _cmd_tail
+	commands["email"] = _cmd_email
+	commands["groups"] = _cmd_groups
 
 func _get_engine():
 	if engine_ref:
@@ -1210,6 +1212,89 @@ func _cmd_export(args: Array) -> String:
 		os_ref.env_vars[var_name] = var_val
 		return ""
 	return "export: %s: not a valid identifier" % args[1]
+
+func _cmd_groups(args: Array) -> String:
+	if not os_ref:
+		return "groups: no OS"
+	if args.size() < 2:
+		# List groups
+		if os_ref.groups.is_empty():
+			return "no groups defined"
+		var out = ""
+		for g in os_ref.groups.keys():
+			var users = os_ref.groups[g]
+			out += "%s: %s\n" % [g, users.join(", ")]
+		return out.strip_edges()
+	match args[1]:
+		"add":
+			if args.size() < 3:
+				return "Usage: groups add <group_name>"
+			var gname = args[2]
+			if not os_ref.groups.has(gname):
+				os_ref.groups[gname] = []
+			return "Group %s created" % gname
+		"rm":
+			if args.size() < 3:
+				return "Usage: groups rm <group_name>"
+			if os_ref.groups.erase(args[2]):
+				return "Group %s removed" % args[2]
+			return "No such group: %s" % args[2]
+	return "Usage: groups add|rm <name>"
+
+func _cmd_email(args: Array) -> String:
+	if not os_ref:
+		return "email: no OS"
+	if args.size() < 2:
+		return "Usage: email send <to> <subject> <body>|list"
+	match args[1]:
+		"send":
+			if args.size() < 5:
+				return "Usage: email send <to> <subject> <body>"
+			var to_addr = args[2]
+			var subject = args[3]
+			var body = " ".join(args.slice(4))
+			var tree = Engine.get_main_loop()
+			if not tree or not tree.root:
+				return "email: no engine"
+			var engine = tree.root.get_node("SimEngine") if tree.root.has_node("SimEngine") else null
+			if not engine:
+				return "email: no engine"
+			var dev = engine.get_device(device_id)
+			if not dev:
+				return "email: device not found"
+			var os = dev.operating_system if "operating_system" in dev else null
+			if not os:
+				return "email: no OS"
+			var fs = os.file_system
+			var mail_dir = "/mail/outbox"
+			if not fs.exists(mail_dir):
+				fs.create_directory(mail_dir)
+			var email_file = mail_dir + "/email_" + str(SimTime.total_elapsed).replace(".", "_") + ".eml"
+			fs.write_file(email_file, "To: " + to_addr + "\nSubject: " + subject + "\n\n" + body)
+			return "250 Mail accepted for delivery"
+		"list":
+			var tree = Engine.get_main_loop()
+			if not tree or not tree.root:
+				return "email: no engine"
+			var engine = tree.root.get_node("SimEngine") if tree.root.has_node("SimEngine") else null
+			if not engine:
+				return "email: no engine"
+			var dev = engine.get_device(device_id)
+			if not dev:
+				return "email: device not found"
+			var fs = dev.operating_system.file_system
+			var mail_dir = "/mail/inbox"
+			if not fs.exists(mail_dir):
+				return "no emails"
+			var files = fs.list_directory(mail_dir)
+			var out = ""
+			for f in files:
+				if f is FileNode and not f.is_directory:
+					out += f.node_name + "\n"
+			if out.is_empty():
+				return "no emails"
+			return out.strip_edges()
+	return "Usage: email send <to> <subject> <body|list>"
 
 func _is_valid_identifier(name: String) -> bool:
 	if name.is_empty():

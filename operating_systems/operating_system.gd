@@ -11,6 +11,7 @@ var device_id: String = ""
 var _next_pid: int = 1
 var cron_jobs: Array = []   # {"id": int, "schedule": String, "command": String}
 var aliases: Dictionary = {}   # name -> command string
+var groups: Dictionary = {}   # group_name -> list of user_names
 
 func _init(p_hostname: String = "localhost", p_device_id: String = ""):
 	hostname = p_hostname
@@ -169,7 +170,8 @@ func to_dict() -> Dictionary:
 		"device_id": device_id,
 		"_next_pid": _next_pid,
 		"cron_jobs": cron_jobs.duplicate(true),
-		"aliases": aliases.duplicate()
+		"aliases": aliases.duplicate(),
+		"groups": groups.duplicate()
 	}
 
 func from_dict(data: Dictionary):
@@ -180,6 +182,7 @@ func from_dict(data: Dictionary):
 	env_vars = data.get("env_vars", {})
 	cron_jobs = data.get("cron_jobs", [])
 	aliases = data.get("aliases", {})
+	groups = data.get("groups", {})
 	
 	users.clear()
 	for ud in data.get("users", []):
