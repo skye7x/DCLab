@@ -157,6 +157,26 @@ func _input(event: InputEvent) -> void:
 			toggle_grid()
 		elif event.keycode == KEY_N and not event.ctrl_pressed:
 			toggle_snap()
+		elif event.keycode == KEY_S and event.ctrl_pressed:
+			if ProjectMgr: ProjectMgr.save_project()
+		elif event.keycode == KEY_O and event.ctrl_pressed:
+			if ProjectMgr: ProjectMgr.load_project()
+		elif event.keycode == KEY_D and event.ctrl_pressed:
+			delete_selected()
+		elif event.keycode == KEY_L and event.ctrl_pressed:
+			toggle_logs_visibility()
+		elif event.keycode == KEY_T and event.ctrl_pressed:
+			if selection.size() == 1:
+				var dev_id = selection[0]
+				var dev = SimEngine.get_device(dev_id) if SimEngine else null
+				if dev and (dev is Computer or dev is StorageDevice):
+					var term_class = load("res://scenes/terminal/terminal_window.gd")
+					if term_class:
+						var win = Window.new()
+						win.set_script(term_class)
+						get_tree().root.add_child(win)
+						if win.has_method("setup"): win.setup(dev_id)
+						win.popup_centered()
 		elif event.keycode == KEY_ESCAPE:
 			if placement_type != "":
 				cancel_placement()
@@ -498,3 +518,11 @@ func _on_device_node_drag_ended(device_id: String, old_pos: Vector2, new_pos: Ve
 	if EventBus:
 		EventBus.device_moved.emit(device_id, snapped)
 	update_connection_positions()
+
+func toggle_logs_visibility() -> void:
+	if EventBus:
+		EventBus.logs_visibility_toggled.emit()
+
+func _on_logs_visibility_toggled(visible: bool) -> void:
+	# Forward to any log panels or inspector panels
+	pass

@@ -10,6 +10,8 @@ var icon_size: Vector2 = Vector2(72, 72)
 var _is_dragging: bool = false
 var _drag_start_pos: Vector2
 var _drag_offset: Vector2
+var _drag_threshold: float = 4.0
+var _drag_confirmed: bool = false
 
 var _label: Label
 var _status_indicator: ColorRect
@@ -108,13 +110,32 @@ func _input(event: InputEvent) -> void:
 				if event.double_click:
 					device_double_clicked.emit(device_id)
 				else:
+					# Start potential drag - wait for movement threshold
 					_is_dragging = true
 					_drag_start_pos = position
 					_drag_offset = mouse_pos - position
+					_drag_threshold = 4.0  # pixels before drag actually starts
+					_drag_confirmed = false
 					device_clicked.emit(device_id, event)
-					device_drag_started.emit(device_id)
 			elif not event.pressed and _is_dragging:
-				_finish_drag()
+				if _drag_confirmed:
+					_finish_drag()
+				else:
+					_is_dragging = false
+
+	elif event is InputEventMouseMotion and _is_dragging and not _drag_confirmed:
+		var moved = mouse_pos.distance_to(_drag_start_pos + _drag_offset)
+		if moved >= _drag_threshold:
+			_drag_confirmed = true
+			device_drag_started.emit(device_id)
+		if _drag_confirmed:
+			var target_pos = mouse_pos - _drag_offset
+			if ws and ws.snap_to_grid:
+				target_pos = ws.snap_position(target_pos)
+			position = target_pos
+			if device_ref:
+				device_ref.position = target_pos
+			device_dragged.emit(device_id, position)
 
 func _finish_drag() -> void:
 	_is_dragging = false
