@@ -28,3 +28,4 @@ export/
 build/
 
 node_modules/ .next/ out/ .log .tsbuildinfo .env*
+dclab-web/node_modules/
