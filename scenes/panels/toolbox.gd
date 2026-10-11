@@ -24,7 +24,7 @@ class PaletteButton extends Button:
 
 	func _draw() -> void:
 		var icon_rect = Rect2(6, (size.y - 20.0) / 2.0, 20, 20)
-		DeviceIcons.draw_device(self, device_type, icon_rect, icon_color, true)
+		DevicePictograms.draw_device(self, device_type, icon_rect, icon_color, true)
 
 func _ready() -> void:
 	custom_minimum_size.x = 190

@@ -151,7 +151,7 @@ func _draw() -> void:
 	var card_bg = Color(0.1, 0.12, 0.16, 0.92)
 	draw_rect(draw_rect, card_bg, true)
 
-	DeviceIcons.draw_device(self, device_ref.device_type, draw_rect.grow(-4.0), base_color, device_ref.is_powered_on)
+	DevicePictograms.draw_device(self, device_ref.device_type, draw_rect.grow(-4.0), base_color, device_ref.is_powered_on)
 
 	if is_selected:
 		draw_rect(draw_rect.grow(4.0), Color(0.3, 0.7, 1.0, 0.9), false, 2.5)
