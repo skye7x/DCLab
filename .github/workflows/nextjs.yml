@@ -3,7 +3,8 @@ name: Deploy Next.js site to Pages
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
     paths:
       - "dclab-web/**"
       - ".github/workflows/nextjs.yml"
@@ -27,33 +28,33 @@ jobs:
         working-directory: dclab-web
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Detect package manager
-        id: detect-package-manager
+        id: package-manager
         run: |
-          if [ -f yarn.lock ]; then
-            echo "manager=yarn" >> "$GITHUB_OUTPUT"
-            echo "command=install" >> "$GITHUB_OUTPUT"
-            echo "runner=yarn" >> "$GITHUB_OUTPUT"
-          elif [ -f package-lock.json ]; then
+          if [ -f package-lock.json ]; then
             echo "manager=npm" >> "$GITHUB_OUTPUT"
-            echo "command=ci" >> "$GITHUB_OUTPUT"
+            echo "install=npm ci" >> "$GITHUB_OUTPUT"
             echo "runner=npx --no-install" >> "$GITHUB_OUTPUT"
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
+            echo "install=yarn install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+            echo "runner=yarn" >> "$GITHUB_OUTPUT"
           else
-            echo "No supported lockfile found in dclab-web"
+            echo "No package-lock.json or yarn.lock found."
             exit 1
           fi
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ${{ steps.detect-package-manager.outputs.manager }}
-          cache-dependency-path: dclab-web/${{ steps.detect-package-manager.outputs.manager == 'yarn' && 'yarn.lock' || 'package-lock.json' }}
+          cache: ${{ steps.package-manager.outputs.manager }}
+          cache-dependency-path: dclab-web/${{ steps.package-manager.outputs.manager == 'yarn' && 'yarn.lock' || 'package-lock.json' }}
 
-      - name: Setup Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
           static_site_generator: next
@@ -67,22 +68,34 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('dclab-web/package-lock.json', 'dclab-web/yarn.lock') }}-
 
       - name: Install dependencies
-        run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+        run: ${{ steps.package-manager.outputs.install }}
 
-      - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Build Next.js
+        run: ${{ steps.package-manager.outputs.runner }} next build
 
-      - name: Upload artifact
+      - name: Verify static export
+        run: |
+          if [ ! -d out ]; then
+            echo "Build output folder 'out' was not created."
+            echo "Check that next.config.ts enables output: export."
+            exit 1
+          fi
+
+      - name: Disable Jekyll
+        run: touch out/.nojekyll
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dclab-web/out
 
   deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
 
     steps:
       - name: Deploy to GitHub Pages
