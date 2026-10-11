@@ -8,7 +8,8 @@ var _fs = null
 
 func setup(p_device_id: String) -> void:
 	_device_id = p_device_id
-	_refresh_file_list()
+	if _file_list:
+		_refresh_file_list()
 
 func _ready() -> void:
 	title = "Web Content Editor"
@@ -115,6 +116,8 @@ func _ready() -> void:
 	bot.add_child(_status_label)
 
 	close_requested.connect(queue_free)
+	if _device_id != "":
+		_refresh_file_list()
 
 func _get_fs() -> bool:
 	if _fs:

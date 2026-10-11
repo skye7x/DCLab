@@ -5,6 +5,8 @@ var _content: VBoxContainer
 
 func setup(device_id: String) -> void:
 	_device_id = device_id
+	if _content:
+		_rebuild()
 
 func _get_router():
 	var tree = Engine.get_main_loop()
@@ -34,7 +36,8 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 8)
 	scroll.add_child(_content)
 
-	_rebuild()
+	if _device_id != "":
+		_rebuild()
 
 func _rebuild() -> void:
 	for child in _content.get_children():

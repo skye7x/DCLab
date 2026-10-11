@@ -6,6 +6,8 @@ var _content: VBoxContainer
 
 func setup(device_id: String) -> void:
 	_device_id = device_id
+	if _content:
+		_rebuild()
 
 func _ready() -> void:
 	title = "Device Configuration"
@@ -31,7 +33,8 @@ func _ready() -> void:
 	scroll.add_child(_content)
 
 	close_requested.connect(queue_free)
-	_rebuild()
+	if _device_id != "":
+		_rebuild()
 
 func _get_device():
 	var tree = Engine.get_main_loop()

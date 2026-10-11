@@ -6,6 +6,8 @@ var _info_lbl: Label
 
 func setup(device_id: String) -> void:
 	_device_id = device_id
+	if _list:
+		_refresh()
 
 func _get_os():
 	var tree = Engine.get_main_loop()
@@ -63,7 +65,8 @@ func _ready() -> void:
 	refresh_btn.pressed.connect(_refresh)
 	btn_row.add_child(refresh_btn)
 
-	_refresh()
+	if _device_id != "":
+		_refresh()
 
 func _refresh() -> void:
 	var os = _get_os()

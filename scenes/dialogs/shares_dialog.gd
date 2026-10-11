@@ -4,8 +4,12 @@ var _device_id: String = ""
 var _list_box: VBoxContainer
 var _status: Label
 
+var _info_label: Label
+
 func setup(device_id: String) -> void:
 	_device_id = device_id
+	if _list_box:
+		_rebuild()
 
 func _ready() -> void:
 	title = "Manage Shares"
@@ -24,12 +28,9 @@ func _ready() -> void:
 	vbox.add_theme_constant_override("separation", 8)
 	m.add_child(vbox)
 
-	var dev = _get_device()
-	if dev and "total_capacity_mb" in dev:
-		var info = Label.new()
-		info.text = "%s — %d GB total, %d MB used, %.1f%%" % [dev.display_name, dev.total_capacity_mb / 1024, dev.used_mb, dev.get_usage_percent()]
-		info.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
-		vbox.add_child(info)
+	_info_label = Label.new()
+	_info_label.add_theme_color_override("font_color", Color(0.6, 0.7, 0.85))
+	vbox.add_child(_info_label)
 
 	vbox.add_child(HSeparator.new())
 
@@ -88,7 +89,8 @@ func _ready() -> void:
 	vbox.add_child(_status)
 
 	close_requested.connect(queue_free)
-	_rebuild()
+	if _device_id != "":
+		_rebuild()
 
 func _get_device():
 	var tree = Engine.get_main_loop()
@@ -100,7 +102,15 @@ func _rebuild() -> void:
 		child.queue_free()
 
 	var dev = _get_device()
-	if not dev or not ("shares" in dev):
+	if not dev:
+		if _info_label:
+			_info_label.text = "Device not found."
+		return
+
+	if _info_label and "total_capacity_mb" in dev:
+		_info_label.text = "%s — %d GB total, %d MB used, %.1f%%" % [dev.display_name, dev.total_capacity_mb / 1024, dev.used_mb, dev.get_usage_percent()]
+
+	if not ("shares" in dev):
 		return
 
 	if dev.shares.is_empty():
