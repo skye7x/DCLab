@@ -26,3 +26,5 @@ export/
 
 # Builds
 build/
+
+node_modules/ .next/ out/ .log .tsbuildinfo .env*
