@@ -29,3 +29,11 @@ build/
 
 node_modules/ .next/ out/ .log .tsbuildinfo .env*
 dclab-web/node_modules/
+
+# Next.js generated files
+dclab-web/node_modules/
+dclab-web/.next/
+dclab-web/out/
+dclab-web/.log
+dclab-web/*.tsbuildinfo
+dclab-web/.env*
