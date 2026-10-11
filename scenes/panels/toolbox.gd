@@ -9,22 +9,74 @@ const CATEGORIES := {
 	"STORAGE": ["storage"],
 }
 
-class PaletteButton extends Button:
+class PaletteButton extends Control:
 	var device_type: String = ""
 	var icon_color: Color = Color.WHITE
+	var _pressed: bool = false
+	var _hovered: bool = false
+	signal pressed
 
 	func _init(p_type: String) -> void:
 		device_type = p_type
 		var def = DeviceFactory.TYPE_DEFS.get(p_type, {})
-		text = str(def.get("label", p_type))
 		icon_color = def.get("color", Color.WHITE)
-		alignment = HORIZONTAL_ALIGNMENT_LEFT
-		custom_minimum_size = Vector2(0, 34)
-		tooltip_text = "Click, then click on the canvas to place a " + text
+		custom_minimum_size = Vector2(0, 40)
+		mouse_filter = Control.MOUSE_FILTER_PASS
+		
+		var hbox = HBoxContainer.new()
+		hbox.add_theme_constant_override("separation", 10)
+		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		add_child(hbox)
+		
+		var icon = Control.new()
+		icon.custom_minimum_size = Vector2(28, 28)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon._draw = _draw_icon.bind(device_type, icon_color)
+		hbox.add_child(icon)
+		
+		var lbl = Label.new()
+		lbl.text = str(def.get("label", p_type))
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 13)
+		lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.95))
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		hbox.add_child(lbl)
 
-	func _draw() -> void:
-		var icon_rect = Rect2(6, (size.y - 20.0) / 2.0, 20, 20)
-		DevicePictograms.draw_device(self, device_type, icon_rect, icon_color, true)
+func _draw_icon(device_type: String, icon_color: Color, canvas: CanvasItem) -> void:
+	var rect = Rect2(4, 4, 20, 20)
+	DevicePictograms.draw_device(canvas, device_type, rect, icon_color, true)
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_pressed = true
+			update()
+		elif _pressed:
+			_pressed = false
+			update()
+			pressed.emit()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_MOUSE_ENTER:
+		_hovered = true
+		update()
+	elif what == NOTIFICATION_MOUSE_EXIT:
+		_hovered = false
+		_pressed = false
+		update()
+
+func _draw() -> void:
+	var bg_color = Color(0.15, 0.15, 0.18, 0.9)
+	if _pressed:
+		bg_color = Color(0.3, 0.5, 0.8, 0.3)
+	elif _hovered:
+		bg_color = Color(0.25, 0.25, 0.3, 0.9)
+	draw_rect(Rect2(Vector2.ZERO, size), bg_color, true)
+	draw_rect(Rect2(Vector2.ZERO, size), Color(0.25, 0.28, 0.35, 0.6), false, 1.0)
 
 func _ready() -> void:
 	custom_minimum_size.x = 190
