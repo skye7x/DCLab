@@ -9,75 +9,6 @@ const CATEGORIES := {
 	"STORAGE": ["storage"],
 }
 
-class PaletteButton extends Control:
-	var device_type: String = ""
-	var icon_color: Color = Color.WHITE
-	var _pressed: bool = false
-	var _hovered: bool = false
-	signal pressed
-
-	func _init(p_type: String) -> void:
-		device_type = p_type
-		var def = DeviceFactory.TYPE_DEFS.get(p_type, {})
-		icon_color = def.get("color", Color.WHITE)
-		custom_minimum_size = Vector2(0, 40)
-		mouse_filter = Control.MOUSE_FILTER_PASS
-		
-		var hbox = HBoxContainer.new()
-		hbox.add_theme_constant_override("separation", 10)
-		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		add_child(hbox)
-		
-		var icon = Control.new()
-		icon.custom_minimum_size = Vector2(28, 28)
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		icon._draw = _draw_icon.bind(device_type, icon_color)
-		hbox.add_child(icon)
-		
-		var lbl = Label.new()
-		lbl.text = str(def.get("label", p_type))
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 13)
-		lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.95))
-		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		hbox.add_child(lbl)
-
-func _draw_icon(device_type: String, icon_color: Color, canvas: CanvasItem) -> void:
-	var rect = Rect2(4, 4, 20, 20)
-	DevicePictograms.draw_device(canvas, device_type, rect, icon_color, true)
-
-func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			_pressed = true
-			update()
-		elif _pressed:
-			_pressed = false
-			update()
-			pressed.emit()
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_MOUSE_ENTER:
-		_hovered = true
-		update()
-	elif what == NOTIFICATION_MOUSE_EXIT:
-		_hovered = false
-		_pressed = false
-		update()
-
-func _draw() -> void:
-	var bg_color = Color(0.15, 0.15, 0.18, 0.9)
-	if _pressed:
-		bg_color = Color(0.3, 0.5, 0.8, 0.3)
-	elif _hovered:
-		bg_color = Color(0.25, 0.25, 0.3, 0.9)
-	draw_rect(Rect2(Vector2.ZERO, size), bg_color, true)
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0.25, 0.28, 0.35, 0.6), false, 1.0)
-
 func _ready() -> void:
 	custom_minimum_size.x = 190
 
@@ -118,7 +49,7 @@ func _ready() -> void:
 		vbox.add_child(cat_lbl)
 
 		for dtype in CATEGORIES[cat]:
-			var btn = PaletteButton.new(dtype)
+			var btn = create_palette_button(dtype)
 			btn.pressed.connect(_on_palette_pressed.bind(dtype))
 			vbox.add_child(btn)
 
@@ -131,6 +62,84 @@ func _ready() -> void:
 	hint.add_theme_color_override("font_color", Color(0.45, 0.48, 0.55))
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(hint)
+
+func create_palette_button(device_type: String) -> Control:
+	var def = DeviceFactory.TYPE_DEFS.get(device_type, {})
+	var icon_color = def.get("color", Color.WHITE)
+	var label_text = str(def.get("label", device_type))
+
+	var btn = Control.new()
+	btn.custom_minimum_size = Vector2(0, 40)
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	var _pressed = false
+	var _hovered = false
+
+	var hbox = HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 10)
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	btn.add_child(hbox)
+
+	var icon = Control.new()
+	icon.custom_minimum_size = Vector2(28, 28)
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon._draw = _draw_icon.bind(device_type, icon_color)
+	hbox.add_child(icon)
+
+	var lbl = Label.new()
+	lbl.text = str(def.get("label", device_type))
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 13)
+	lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.95))
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hbox.add_child(lbl)
+
+	btn._pressed = false
+	btn._hovered = false
+
+	btn._gui_input = func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				btn._pressed = true
+				btn.update()
+			elif btn._pressed:
+				btn._pressed = false
+				btn.update()
+				btn.emit_signal("pressed")
+
+	btn._notification = func(what: int) -> void:
+		if what == NOTIFICATION_MOUSE_ENTER:
+			btn._hovered = true
+			btn.update()
+		elif what == NOTIFICATION_MOUSE_EXIT:
+			btn._hovered = false
+			btn._pressed = false
+			btn.update()
+
+	btn._draw = func() -> void:
+		var bg_color = Color(0.15, 0.15, 0.18, 0.9)
+		if btn._pressed:
+			bg_color = Color(0.3, 0.5, 0.8, 0.3)
+		elif btn._hovered:
+			bg_color = Color(0.25, 0.25, 0.3, 0.9)
+		draw_rect(Rect2(Vector2.ZERO, btn.size), bg_color, true)
+		draw_rect(Rect2(Vector2.ZERO, btn.size), Color(0.25, 0.28, 0.35, 0.6), false, 1.0
+
+	btn._draw_icon = func(device_type: String, icon_color: Color, canvas: CanvasItem) -> void:
+		var rect = Rect2(4, 4, 20, 20)
+		DevicePictograms.draw_device(canvas, device_type, rect, icon_color, true)
+
+	icon._draw = btn._draw_icon.bind(device_type, icon_color)
+
+	btn.add_user_signal("pressed")
+	return btn
+
+func _draw_icon(device_type: String, icon_color: Color, canvas: CanvasItem) -> void:
+	var rect = Rect2(4, 4, 20, 20)
+	DevicePictograms.draw_device(canvas, device_type, rect, icon_color, true)
 
 func _on_palette_pressed(device_type: String) -> void:
 	if _workspace_ref and _workspace_ref.has_method("start_placement"):
