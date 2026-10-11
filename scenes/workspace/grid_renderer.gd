@@ -2,10 +2,10 @@ extends Node2D
 class_name GridRenderer
 
 var grid_size: int = 32
-var grid_color: Color = Color(0.18, 0.20, 0.25, 0.45)
+var grid_color: Color = Color(1, 1, 1, 0.045)
 var major_grid_every: int = 4
-var major_grid_color: Color = Color(0.25, 0.29, 0.38, 0.65)
-var axis_color: Color = Color(0.35, 0.42, 0.55, 0.8)
+var major_grid_color: Color = Color(1, 1, 1, 0.09)
+var axis_color: Color = Color(0.196, 0.569, 1.0, 0.35)
 var visible_grid: bool = true
 var adaptive_grid: bool = true
 

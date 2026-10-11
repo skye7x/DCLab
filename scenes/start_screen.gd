@@ -6,13 +6,13 @@ signal open_sample_requested()
 
 func _ready() -> void:
 	var bg = ColorRect.new()
-	bg.color = Color(0.07, 0.07, 0.09)
+	bg.color = Color("#0a0a0a")
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
 	# Subtle vignette-ish accent bar at top
 	var accent_bar = ColorRect.new()
-	accent_bar.color = Color(0.30, 0.55, 0.95, 0.9)
+	accent_bar.color = Color("#3291ff")
 	accent_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	accent_bar.custom_minimum_size.y = 3
 	accent_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -24,12 +24,12 @@ func _ready() -> void:
 
 	var card = PanelContainer.new()
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.11, 0.11, 0.13, 0.97)
+	sb.bg_color = Color("#111111")
 	sb.corner_radius_top_left = 8
 	sb.corner_radius_top_right = 8
 	sb.corner_radius_bottom_left = 8
 	sb.corner_radius_bottom_right = 8
-	sb.border_color = Color(0.25, 0.27, 0.32)
+	sb.border_color = Color("#2e2e2e")
 	sb.border_width_left = 1
 	sb.border_width_right = 1
 	sb.border_width_top = 1
@@ -49,14 +49,14 @@ func _ready() -> void:
 	var title = Label.new()
 	title.text = "DCLab"
 	title.add_theme_font_size_override("font_size", 40)
-	title.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
+	title.add_theme_color_override("font_color", Color("#ededed"))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
 
 	var subtitle = Label.new()
 	subtitle.text = "Interactive IT Infrastructure Simulator"
 	subtitle.add_theme_font_size_override("font_size", 14)
-	subtitle.add_theme_color_override("font_color", Color(0.55, 0.55, 0.62))
+	subtitle.add_theme_color_override("font_color", Color("#a1a1a1"))
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(subtitle)
 
@@ -85,7 +85,7 @@ func _ready() -> void:
 	var sample_lbl = Label.new()
 	sample_lbl.text = "  SAMPLE PROJECTS"
 	sample_lbl.add_theme_font_size_override("font_size", 10)
-	sample_lbl.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65))
+	sample_lbl.add_theme_color_override("font_color", Color("#8f8f8f"))
 	vbox.add_child(sample_lbl)
 
 	var btn_sample = Button.new()
@@ -102,6 +102,6 @@ func _ready() -> void:
 	var version = Label.new()
 	version.text = "v0.1.0 — scroll to zoom, middle-drag to pan the canvas"
 	version.add_theme_font_size_override("font_size", 11)
-	version.add_theme_color_override("font_color", Color(0.4, 0.4, 0.45))
+	version.add_theme_color_override("font_color", Color("#6b6b6b"))
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(version)

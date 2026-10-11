@@ -77,7 +77,7 @@ jobs:
         run: |
           if [ ! -d out ]; then
             echo "Build output folder 'out' was not created."
-            echo "Check that next.config.ts enables output: export."
+            echo "Check that next.config.js enables output: export."
             exit 1
           fi
 

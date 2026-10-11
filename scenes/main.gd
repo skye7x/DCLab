@@ -14,7 +14,7 @@ func _ready() -> void:
 	_apply_dark_theme()
 	show_start_screen()
 
-func _flat_sb(color: Color, radius: int = 3, border_col: Color = Color.TRANSPARENT, border_w: int = 0) -> StyleBoxFlat:
+func _flat_sb(color: Color, radius: int = 6, border_col: Color = Color.TRANSPARENT, border_w: int = 0) -> StyleBoxFlat:
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = color
 	sb.corner_radius_top_left = radius
@@ -33,34 +33,34 @@ func _apply_dark_theme() -> void:
 	var dark_theme = Theme.new()
 	dark_theme.default_font_size = 13
 
-	var bg := Color(0.12, 0.12, 0.14)
-	var bg_hover := Color(0.17, 0.17, 0.20)
-	var bg_pressed := Color(0.09, 0.09, 0.11)
-	var border := Color(0.25, 0.26, 0.30)
-	var accent := Color(0.30, 0.55, 0.95)
-	var text := Color(0.88, 0.88, 0.90)
-	var text_dim := Color(0.60, 0.60, 0.65)
+	var bg := Color("#111111")
+	var bg_hover := Color("#1a1a1a")
+	var bg_pressed := Color("#0a0a0a")
+	var border := Color("#2e2e2e")
+	var accent := Color("#3291ff")
+	var text := Color("#ededed")
+	var text_dim := Color("#a1a1a1")
 
-	var panel_style = _flat_sb(bg, 4, border, 1)
+	var panel_style = _flat_sb(bg, 6, border, 1)
 	dark_theme.set_stylebox("panel", "Panel", panel_style)
 	dark_theme.set_stylebox("panel", "PanelContainer", panel_style)
 	dark_theme.set_stylebox("panel", "MarginContainer", panel_style)
 
-	var btn_normal = _flat_sb(bg, 3, border, 1)
+	var btn_normal = _flat_sb(bg, 6, border, 1)
 	btn_normal.content_margin_left = 10
 	btn_normal.content_margin_right = 10
 	btn_normal.content_margin_top = 4
 	btn_normal.content_margin_bottom = 4
 	dark_theme.set_stylebox("normal", "Button", btn_normal)
 
-	var btn_hover = _flat_sb(bg_hover, 3, accent.lightened(0.2), 1)
+	var btn_hover = _flat_sb(bg_hover, 6, accent.lightened(0.2), 1)
 	btn_hover.content_margin_left = 10
 	btn_hover.content_margin_right = 10
 	btn_hover.content_margin_top = 4
 	btn_hover.content_margin_bottom = 4
 	dark_theme.set_stylebox("hover", "Button", btn_hover)
 
-	var btn_pressed = _flat_sb(bg_pressed, 3, accent, 1)
+	var btn_pressed = _flat_sb(bg_pressed, 6, accent, 1)
 	btn_pressed.content_margin_left = 10
 	btn_pressed.content_margin_right = 10
 	btn_pressed.content_margin_top = 4
@@ -71,10 +71,10 @@ func _apply_dark_theme() -> void:
 	btn_focus.bg_color = Color.TRANSPARENT
 	btn_focus.border_color = accent
 	btn_focus.set_border_width_all(1)
-	btn_focus.set_corner_radius_all(3)
+	btn_focus.set_corner_radius_all(6)
 	dark_theme.set_stylebox("focus", "Button", btn_focus)
 
-	var btn_disabled = _flat_sb(Color(0.10, 0.10, 0.11), 3, Color(0.18, 0.18, 0.20), 1)
+	var btn_disabled = _flat_sb(Color("#0d0d0d"), 6, Color("#222222"), 1)
 	dark_theme.set_stylebox("disabled", "Button", btn_disabled)
 
 	dark_theme.set_color("font_color", "Button", text)
@@ -83,13 +83,13 @@ func _apply_dark_theme() -> void:
 	dark_theme.set_color("font_focus_color", "Button", text)
 	dark_theme.set_color("font_disabled_color", "Button", text_dim)
 
-	var line_edit = _flat_sb(Color(0.10, 0.10, 0.12), 3, border, 1)
+	var line_edit = _flat_sb(Color("#0a0a0a"), 6, border, 1)
 	line_edit.content_margin_left = 8
 	line_edit.content_margin_right = 8
 	line_edit.content_margin_top = 4
 	line_edit.content_margin_bottom = 4
 	dark_theme.set_stylebox("normal", "LineEdit", line_edit)
-	var line_edit_focus = _flat_sb(Color(0.10, 0.10, 0.12), 3, accent, 1)
+	var line_edit_focus = _flat_sb(Color("#0a0a0a"), 6, accent, 1)
 	line_edit_focus.content_margin_left = 8
 	line_edit_focus.content_margin_right = 8
 	line_edit_focus.content_margin_top = 4
@@ -98,14 +98,14 @@ func _apply_dark_theme() -> void:
 	dark_theme.set_color("font_color", "LineEdit", text)
 	dark_theme.set_color("font_placeholder_color", "LineEdit", text_dim)
 
-	var tab_bg = _flat_sb(Color(0.10, 0.10, 0.12), 3)
+	var tab_bg = _flat_sb(Color("#0a0a0a"), 6)
 	dark_theme.set_stylebox("panel", "TabContainer", tab_bg)
-	dark_theme.set_stylebox("tab_selected", "TabContainer", _flat_sb(bg, 3, border, 1))
-	dark_theme.set_stylebox("tab_unselected", "TabContainer", _flat_sb(Color(0.09, 0.09, 0.10), 3))
+	dark_theme.set_stylebox("tab_selected", "TabContainer", _flat_sb(bg, 6, border, 1))
+	dark_theme.set_stylebox("tab_unselected", "TabContainer", _flat_sb(Color("#0d0d0d"), 6))
 	dark_theme.set_color("font_color", "TabContainer", text_dim)
 	dark_theme.set_color("font_selected_color", "TabContainer", text)
 
-	var popup_bg = _flat_sb(Color(0.13, 0.13, 0.15), 4, border, 1)
+	var popup_bg = _flat_sb(Color("#111111"), 8, border, 1)
 	dark_theme.set_stylebox("panel", "PopupMenu", popup_bg)
 	dark_theme.set_stylebox("hover", "PopupMenu", _flat_sb(accent.darkened(0.5), 2))
 	dark_theme.set_color("font_color", "PopupMenu", text)
@@ -121,19 +121,19 @@ func _apply_dark_theme() -> void:
 
 	var scroll_bg = StyleBoxEmpty.new()
 	dark_theme.set_stylebox("scrollbar", "ScrollBar", scroll_bg)
-	dark_theme.set_stylebox("grabber", "HScrollBar", _flat_sb(Color(0.35, 0.35, 0.40), 3))
-	dark_theme.set_stylebox("grabber_highlight", "HScrollBar", _flat_sb(accent, 3))
-	dark_theme.set_stylebox("grabber", "VScrollBar", _flat_sb(Color(0.35, 0.35, 0.40), 3))
-	dark_theme.set_stylebox("grabber_highlight", "VScrollBar", _flat_sb(accent, 3))
+	dark_theme.set_stylebox("grabber", "HScrollBar", _flat_sb(Color("#4d4d4d"), 6))
+	dark_theme.set_stylebox("grabber_highlight", "HScrollBar", _flat_sb(accent, 6))
+	dark_theme.set_stylebox("grabber", "VScrollBar", _flat_sb(Color("#4d4d4d"), 6))
+	dark_theme.set_stylebox("grabber_highlight", "VScrollBar", _flat_sb(accent, 6))
 
-	var option_bg = _flat_sb(bg, 3, border, 1)
+	var option_bg = _flat_sb(bg, 6, border, 1)
 	option_bg.content_margin_left = 8
 	option_bg.content_margin_right = 8
 	option_bg.content_margin_top = 3
 	option_bg.content_margin_bottom = 3
 	dark_theme.set_stylebox("normal", "OptionButton", option_bg)
-	dark_theme.set_stylebox("hover", "OptionButton", _flat_sb(bg_hover, 3, accent.lightened(0.2), 1))
-	dark_theme.set_stylebox("pressed", "OptionButton", _flat_sb(bg_pressed, 3, accent, 1))
+	dark_theme.set_stylebox("hover", "OptionButton", _flat_sb(bg_hover, 6, accent.lightened(0.2), 1))
+	dark_theme.set_stylebox("pressed", "OptionButton", _flat_sb(bg_pressed, 6, accent, 1))
 	dark_theme.set_color("font_color", "OptionButton", text)
 
 	dark_theme.set_color("font_color", "Label", text)

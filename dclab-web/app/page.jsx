@@ -50,7 +50,7 @@ export default function Page() {
       <a className="skip" href="#features">Skip to content</a>
       <Glass as="header" className="nav">
         <a className="logo" href="#top" aria-label="DCLab home">
-          <img src="/icon.svg" alt="" width="24" height="24" style={{ verticalAlign: 'middle', marginRight: 6 }} />
+          <img src="/icon.svg" alt="DCLab" width="24" height="24" style={{ verticalAlign: 'middle', marginRight: 6 }} />
           DCLab
         </a>
         <nav aria-label="Primary"><a className="l" href="#how">How it works</a><a className="l" href="#features">Features</a><a className="l" href="#devices">Devices</a><a className="l" href="#terminal">Terminal</a><a className="l" href="#faq">FAQ</a></nav>
@@ -137,7 +137,7 @@ export default function Page() {
         </section>
       </main>
       <footer><div className="wrap">
-        <div><span className="logo"><img src="/icon.svg" alt="" width="20" height="20" style={{ verticalAlign: 'middle', marginRight: 6 }} />DCLab</span><p>IT infrastructure simulator.<br />Made with Godot.</p></div>
+        <div><span className="logo"><img src="/icon.svg" alt="DCLab" width="20" height="20" style={{ verticalAlign: 'middle', marginRight: 6 }} />DCLab</span><p>IT infrastructure simulator.<br />Made with Godot.</p></div>
         <div><b>Project</b><a href={GH}>GitHub</a><a href={`${GH}/issues`}>Issues</a><a href={`${GH}/pulls`}>Pull requests</a></div>
         <div><b>Explore</b><a href="#how">How it works</a><a href="#features">Features</a><a href="#devices">Devices</a></div>
         <div><b>Legal</b><a href={`${GH}/blob/main/LICENSE`}>AGPL-3.0</a><span>© skye7x</span></div>

@@ -37,3 +37,10 @@ dclab-web/out/
 dclab-web/.log
 dclab-web/*.tsbuildinfo
 dclab-web/.env*
+
+# Local debug artefacts (were committed by accident)
+_smoke_*
+_f[0-9]*_out.txt
+_f[0-9]*_err.txt
+log_output.txt
+temp_git_log.txt

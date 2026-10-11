@@ -28,7 +28,7 @@ func _ready() -> void:
 	_label.position = Vector2(-icon_size.x, icon_size.y / 2.0 + 4)
 	_label.custom_minimum_size = Vector2(icon_size.x * 2.0, 18)
 	_label.add_theme_font_size_override("font_size", 12)
-	_label.add_theme_color_override("font_color", Color(0.9, 0.92, 0.95))
+	_label.add_theme_color_override("font_color", Color("#ededed"))
 	add_child(_label)
 
 	_ip_label = Label.new()
@@ -36,12 +36,13 @@ func _ready() -> void:
 	_ip_label.position = Vector2(-icon_size.x, icon_size.y / 2.0 + 22)
 	_ip_label.custom_minimum_size = Vector2(icon_size.x * 2.0, 14)
 	_ip_label.add_theme_font_size_override("font_size", 10)
-	_ip_label.add_theme_color_override("font_color", Color(0.55, 0.65, 0.8))
+	_ip_label.add_theme_color_override("font_color", Color("#8f8f8f"))
 	add_child(_ip_label)
 
+	# Status is drawn as a badge in _draw(); the ColorRect stays for compatibility but is hidden.
 	_status_indicator = ColorRect.new()
 	_status_indicator.size = Vector2(10, 10)
-	_status_indicator.position = Vector2(icon_size.x / 2.0 - 12, -icon_size.y / 2.0 + 4)
+	_status_indicator.visible = false
 	add_child(_status_indicator)
 
 func setup(device) -> void:
@@ -126,42 +127,62 @@ func _finish_drag() -> void:
 		device_ref.position = final_pos
 	device_drag_ended.emit(device_id, _drag_start_pos, final_pos)
 
+const CARD := Color("#111111")
+const CARD_OFF := Color("#0d0d0d")
+const HAIRLINE := Color("#2e2e2e")
+const HAIRLINE_HOVER := Color("#4d4d4d")
+const ACCENT := Color("#3291ff")
+const OK := Color("#50e3c2")
+const BAD := Color("#ff4d4d")
+const IDLE := Color("#8f8f8f")
+const CARD_RADIUS := 10
+
+func _card_style(bg: Color, border: Color, border_w: int, grow: int = 0) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.set_border_width_all(border_w)
+	sb.set_corner_radius_all(CARD_RADIUS + grow)
+	sb.anti_aliasing = true
+	return sb
+
 func _draw() -> void:
 	if not device_ref:
 		return
 
-	var base_color = Color(0.22, 0.45, 0.75)
-	match device_ref.device_type:
-		"router": base_color = Color(0.85, 0.45, 0.2)
-		"switch": base_color = Color(0.2, 0.65, 0.6)
-		"firewall": base_color = Color(0.8, 0.25, 0.3)
-		"server": base_color = Color(0.35, 0.55, 0.85)
-		"storage": base_color = Color(0.65, 0.4, 0.75)
-		"pc": base_color = Color(0.25, 0.55, 0.8)
-
+	var base_color: Color = DeviceFactory.get_color(device_ref.device_type)
 	if not device_ref.is_enabled:
 		base_color = Color(0.4, 0.45, 0.5)
 
-	var draw_rect = Rect2(-icon_size / 2.0, icon_size)
+	var card_rect := Rect2(-icon_size / 2.0, icon_size)
+	var powered: bool = device_ref.is_powered_on and device_ref.is_enabled
 
-	# Shadow
-	draw_rect(Rect2(draw_rect.position + Vector2(2, 3), draw_rect.size), Color(0, 0, 0, 0.35), true)
+	# Soft drop shadow: one offset card, no heavy blur.
+	var shadow := _card_style(Color(0, 0, 0, 0.35), Color.TRANSPARENT, 0)
+	draw_style_box(shadow, Rect2(card_rect.position + Vector2(0, 2), card_rect.size))
 
-	# Background card
-	var card_bg = Color(0.1, 0.12, 0.16, 0.92)
-	draw_rect(draw_rect, card_bg, true)
-
-	DevicePictograms.draw_device(self, device_ref.device_type, draw_rect.grow(-4.0), base_color, device_ref.is_powered_on)
-
+	# Card: hairline by default, brighter on hover, accent ring when selected.
+	var border: Color = HAIRLINE
+	var border_w := 1
 	if is_selected:
-		draw_rect(draw_rect.grow(4.0), Color(0.3, 0.7, 1.0, 0.9), false, 2.5)
-		var c_size = 4.0
-		var r_exp = draw_rect.grow(4.0)
-		draw_rect(Rect2(r_exp.position.x - c_size/2, r_exp.position.y - c_size/2, c_size, c_size), Color.CYAN, true)
-		draw_rect(Rect2(r_exp.end.x - c_size/2, r_exp.position.y - c_size/2, c_size, c_size), Color.CYAN, true)
-		draw_rect(Rect2(r_exp.position.x - c_size/2, r_exp.end.y - c_size/2, c_size, c_size), Color.CYAN, true)
-		draw_rect(Rect2(r_exp.end.x - c_size/2, r_exp.end.y - c_size/2, c_size, c_size), Color.CYAN, true)
+		border = ACCENT
+		border_w = 2
 	elif is_hovered:
-		draw_rect(draw_rect.grow(2.0), Color(0.7, 0.8, 1.0, 0.8), false, 1.5)
+		border = HAIRLINE_HOVER
+	draw_style_box(_card_style(CARD if powered else CARD_OFF, border, border_w), card_rect)
+	if is_selected:
+		var halo := ACCENT
+		halo.a = 0.25
+		var halo_style := _card_style(Color.TRANSPARENT, halo, 3, 4)
+		draw_style_box(halo_style, card_rect.grow(4.0))
+
+	DevicePictograms.draw_device(self, device_ref.device_type, card_rect.grow(-14.0), base_color, powered)
+
+	# Shape + colour status badge so state never relies on colour alone:
+	# filled dot = running, hollow ring = off / disabled.
+	var dot_pos := Vector2(card_rect.end.x - 9.0, card_rect.position.y + 9.0)
+	var status_col: Color = OK if powered else (IDLE if not device_ref.is_enabled else BAD)
+	if powered:
+		draw_circle(dot_pos, 3.5, status_col)
 	else:
-		draw_rect(draw_rect, Color(0.25, 0.28, 0.35, 0.6), false, 1.0)
+		draw_arc(dot_pos, 3.0, 0.0, TAU, 20, status_col, 1.5, true)

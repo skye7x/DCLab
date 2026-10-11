@@ -74,9 +74,14 @@ func _draw() -> void:
 		var ghost_pos = snap_position(get_global_mouse_position())
 		var icon_rect = Rect2(ghost_pos - Vector2(36, 36), Vector2(72, 72))
 		var col = DeviceFactory.get_color(placement_type)
-		draw_rect(icon_rect.grow(3.0), Color(col.r, col.g, col.b, 0.35), true)
-		DeviceIcons.draw_device(self, placement_type, icon_rect.grow(-4.0), col, true)
-		draw_rect(icon_rect, Color(0.4, 0.9, 0.5, 0.9), false, 2.0 / maxf(get_zoom(), 0.2))
+		var ghost_bg := StyleBoxFlat.new()
+		ghost_bg.bg_color = Color(0.067, 0.067, 0.067, 0.7)
+		ghost_bg.border_color = Color(0.196, 0.569, 1.0, 0.9)
+		ghost_bg.set_border_width_all(1)
+		ghost_bg.set_corner_radius_all(10)
+		ghost_bg.anti_aliasing = true
+		draw_style_box(ghost_bg, icon_rect)
+		DevicePictograms.draw_device(self, placement_type, icon_rect.grow(-14.0), col, true)
 
 func _input(event: InputEvent) -> void:
 	if is_camera_busy():
