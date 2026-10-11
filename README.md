@@ -5,39 +5,7 @@ DCLab is an interactive network topology simulator for IT education and experime
 
 ## Features
 The simulator includes 50+ features across these categories:
-
-### Network Layer (F1-F22, verified)
-- **F1**: Traceroute with `find_path` and `get_link_between`
-- **F2**: VLAN-aware BFS pathfinding
-- **F3**: Subnet calculator dialog
-- **F4**: NAT on routers (masquerade, WAN iface)
-- **F5**: DNS service with nslookup/dig commands
-- **F6**: Packet capture with static buffer
-- **F7**: Link configuration dialog (bandwidth/latency/loss)
-- **F8**: Link congestion with utilization tracking
-- **F9**: Static routes editor (add/del syntax)
-- **F10**: ARP table with serialization
-- **F11**: Topology auto-layout
-- **F12**: ICMP unreachable error types
-- **F13**: User management (remove_user, set_password, authenticate)
-- **F14**: Process manager UI dialog
-- **F15**: APT simulator
-- **F16**: Cron/scheduled tasks
-- **F17**: SSH between devices
-- **F18**: Multi-tab terminal (independent sessions)
-- **F19**: Shell aliases
-- **F20**: Environment variables
-- **F21**: Web content editor dialog
-- **F22**: journalctl/tail commands
-
-### Additional Features (F23-F50)
-- FTP service, groups/access control, email server, website builder
-- Load balancer, reverse proxy, monitoring graphs, NAS backup
-- Firewall rule tester, IDS device, VPN tunnel, password audit
-- Attack simulator, certificates/HTTPS, copy/paste, minimap
-- Theme toggle, export PNG, report export, project templates
-- DHCP lease viewer, link outage drill, time-based events, lab scenarios
-- iperf bandwidth testing
+ing
 
 ## Project Structure
 - **Engine**: Godot 4.7.2
