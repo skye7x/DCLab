@@ -61,6 +61,8 @@ func _init(p_device_id: String, p_os: OperatingSystem):
 	commands["export"] = _cmd_export
 	commands["unset"] = _cmd_unset
 	commands["env"] = _cmd_env
+	commands["journalctl"] = _cmd_journalctl
+	commands["tail"] = _cmd_tail
 
 func _get_engine():
 	if engine_ref:
@@ -1236,4 +1238,93 @@ func _cmd_env(args: Array) -> String:
 	var out = ""
 	for key in os_ref.env_vars.keys():
 		out += "%s=%s\n" % [key, os_ref.env_vars[key]]
+	return out.strip_edges()
+
+func _cmd_journalctl(args: Array) -> String:
+	if not os_ref:
+		return "journalctl: no OS"
+	var tree = Engine.get_main_loop()
+	var logger = tree.root.get_node_or_null("/root/SimLogger") if tree and tree.root else null
+	if not logger:
+		return "journalctl: logger unavailable"
+	var level_filter = ""
+	var since_minutes = 0
+	var show_all = false
+	var i = 1
+	while i < args.size():
+		if args[i] == "-p" or args[i] == "--priority":
+			if i + 1 < args.size():
+				level_filter = args[i + 1]
+				i += 2
+			else:
+				return "journalctl: -p requires a level argument"
+		elif args[i] == "--since":
+			if i + 1 < args.size():
+				var v = args[i + 1]
+				if v.ends_with("m"):
+					since_minutes = int(v.substr(0, v.length() - 1))
+				else:
+					since_minutes = int(v)
+				i += 2
+			else:
+				return "journalctl: --since requires a minutes argument"
+		elif args[i] == "-a" or args[i] == "--all":
+			show_all = true
+			i += 1
+		else:
+			i += 1
+	var logs = logger.get_logs(device_id, level_filter.to_upper() if level_filter != "" else "")
+	if not show_all and since_minutes > 0:
+		var cutoff = SimTime.total_elapsed - (since_minutes * 60)
+		var filtered = []
+		for l in logs:
+			if l.timestamp >= cutoff:
+				filtered.append(l)
+		logs = filtered
+	var out = ""
+	for log in logs:
+		var t = log.timestamp
+		var level = log.level
+		var msg = log.message
+		var dt = str(int(t / 60)) + "m" + str(int(t) % 60).lpad(2, "0") + "s"
+		out += "[%s] %s: %s\n" % [dt, level, msg]
+	if out.is_empty():
+		out = "No journal entries"
+	return out.strip_edges()
+
+func _cmd_tail(args: Array) -> String:
+	if not os_ref:
+		return "tail: no OS"
+	var tree = Engine.get_main_loop()
+	var logger = tree.root.get_node_or_null("/root/SimLogger") if tree and tree.root else null
+	if not logger:
+		return "tail: logger unavailable"
+	var n_lines = 20
+	var follow = false
+	var i = 1
+	while i < args.size():
+		if args[i] == "-n" and i + 1 < args.size():
+			n_lines = int(args[i + 1]) if args[i + 1].is_valid_int() else 20
+			i += 2
+		elif args[i] == "-f" or args[i] == "--follow":
+			follow = true
+			i += 1
+		else:
+			i += 1
+	var all_logs = logger.get_logs(device_id, "")
+	# Sort by timestamp descending (newest first)
+	all_logs.sort_custom(func(a, b): return a.timestamp > b.timestamp)
+	var out = ""
+	var count = 0
+	for log in all_logs:
+		if count >= n_lines:
+			break
+		var t = log.timestamp
+		var level = log.level
+		var msg = log.message
+		var dt = str(int(t / 60)) + "m" + str(int(t) % 60).lpad(2, "0") + "s"
+		out += "[%s] %s: %s\n" % [dt, level, msg]
+		count += 1
+	if follow:
+		out += "\n--- Following logs (Ctrl+C to stop) ---\n"
 	return out.strip_edges()
