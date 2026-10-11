@@ -160,7 +160,7 @@ func _input(event: InputEvent) -> void:
 		elif event.keycode == KEY_S and event.ctrl_pressed:
 			if ProjectMgr: ProjectMgr.save_project()
 		elif event.keycode == KEY_O and event.ctrl_pressed:
-			if ProjectMgr: ProjectMgr.load_project()
+			_open_load_project_dialog()
 		elif event.keycode == KEY_D and event.ctrl_pressed:
 			delete_selected()
 		elif event.keycode == KEY_L and event.ctrl_pressed:
@@ -526,3 +526,17 @@ func toggle_logs_visibility() -> void:
 func _on_logs_visibility_toggled(visible: bool) -> void:
 	# Forward to any log panels or inspector panels
 	pass
+
+func _open_load_project_dialog() -> void:
+	var dialog = FileDialog.new()
+	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	dialog.title = "Load Project"
+	dialog.filters = ["*.dclab : DCLab Project Files"]
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_selected.connect(_on_project_file_selected)
+	add_child(dialog)
+	dialog.popup_centered()
+
+func _on_project_file_selected(path: String) -> void:
+	if ProjectMgr:
+		ProjectMgr.load_project(path)
