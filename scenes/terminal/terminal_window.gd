@@ -78,6 +78,13 @@ func _on_tab_session_changed(new_device_id: String, tab) -> void:
 	tab.name = _tab_title_for(new_device_id)
 
 func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	var vp = get_viewport()
+	if vp:
+		var fo = vp.gui_get_focus_owner()
+		if fo and not is_ancestor_of(fo) and fo != self:
+			return
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_T:
 			_on_new_tab_pressed()

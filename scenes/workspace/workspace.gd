@@ -467,7 +467,7 @@ func _on_device_node_clicked(device_id: String, event: InputEvent) -> void:
 
 func _on_device_node_double_clicked(device_id: String) -> void:
 	var dev = SimEngine.get_device(device_id) if SimEngine else null
-	if dev and (dev is Computer):
+	if dev and (dev is Computer or dev is StorageDevice):
 		var term_class = load("res://scenes/terminal/terminal_window.gd")
 		if term_class:
 			var win = Window.new()

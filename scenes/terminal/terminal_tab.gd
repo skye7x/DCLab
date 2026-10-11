@@ -10,6 +10,7 @@ var _prompt_label: Label
 var _history: Array = []
 var _history_index: int = -1
 var _session_stack: Array = []
+var _pending_text: String = ""
 
 func setup(p_device_id: String) -> void:
 	device_id = p_device_id
@@ -27,7 +28,7 @@ func _connect_processor() -> void:
 	if cp_class:
 		command_processor = cp_class.new(device_id, device.operating_system)
 		command_processor.engine_ref = engine
-	if _prompt_label and command_processor.has_method("get_prompt"):
+	if _prompt_label and command_processor and command_processor.has_method("get_prompt"):
 		_prompt_label.text = command_processor.get_prompt()
 
 func _print_banner() -> void:
@@ -56,6 +57,10 @@ func _ready() -> void:
 	_output.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_output.add_theme_color_override("default_color", Color(0.85, 0.85, 0.85))
 	add_child(_output)
+
+	if not _pending_text.is_empty():
+		_output.append_text(_pending_text)
+		_pending_text = ""
 
 	var hbox = HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 6)
@@ -120,6 +125,9 @@ func _on_command_entered(text: String) -> void:
 	_input.grab_focus()
 
 func _append(text: String) -> void:
+	if not _output:
+		_pending_text += text
+		return
 	_output.append_text(text)
 
 func _switch_ssh_session(target_dev_id: String, login_user: String) -> void:
