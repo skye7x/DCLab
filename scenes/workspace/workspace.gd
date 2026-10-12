@@ -122,7 +122,7 @@ func _input(event: InputEvent) -> void:
 				elif tool_mode == ToolMode.DELETE and clicked_dev_id != "":
 					_delete_device_at(clicked_dev_id)
 				elif clicked_dev_id == "" and tool_mode == ToolMode.POINTER:
-					# Check if clicking near a connection line → open link config
+					# Check if clicking near a connection line -> open link config
 					var link_at = get_link_at_position(get_global_mouse_position())
 					if link_at:
 						_open_link_config(link_at.id)

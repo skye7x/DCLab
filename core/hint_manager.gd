@@ -32,12 +32,12 @@ const HINTS := [
 	},
 	{
 		"id": "simulate",
-		"text": "Press ▶ in the toolbar (Simulation → Start) to run the network and watch packets flow.",
+		"text": "Press Play in the toolbar (Simulation > Start) to run the network and watch packets flow.",
 		"check": "has_links",
 	},
 	{
 		"id": "projects",
-		"text": "Save your work with Ctrl+S — projects use the .dclabproj format. Help → Instructions has every shortcut.",
+		"text": "Save your work with Ctrl+S — projects use the .dclabproj format. Help > Instructions has every shortcut.",
 		"check": "has_links",
 	},
 ]

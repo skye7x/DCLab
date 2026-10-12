@@ -179,14 +179,14 @@ func http_request(source_device_id: String, dest_ip: String, port: int = 80, pat
 				if response is Dictionary:
 					var status = response.get("status", 200)
 					var body = response.get("body", "")
-					PacketCapture.record(src_ip2, dest_ip, "TCP", 64, "SYN %d→%d" % [0, port])
-					PacketCapture.record(dest_ip, src_ip2, "TCP", int(str(body).length()) + 64, "SYN-ACK %d→%d HTTP %d" % [port, 0, status])
+					PacketCapture.record(src_ip2, dest_ip, "TCP", 64, "SYN %d->%d" % [0, port])
+					PacketCapture.record(dest_ip, src_ip2, "TCP", int(str(body).length()) + 64, "SYN-ACK %d->%d HTTP %d" % [port, 0, status])
 					if tcp_check.has("path"):
 						_animate_path_traffic(tcp_check.path, "HTTP")
 					return {"success": status == 200, "status_code": status, "body": str(body), "error": "" if status == 200 else str(body)}
 				else:
-					PacketCapture.record(src_ip2, dest_ip, "TCP", 64, "SYN %d→%d" % [0, port])
-					PacketCapture.record(dest_ip, src_ip2, "TCP", 64, "SYN-ACK %d→%d" % [port, 0])
+					PacketCapture.record(src_ip2, dest_ip, "TCP", 64, "SYN %d->%d" % [0, port])
+					PacketCapture.record(dest_ip, src_ip2, "TCP", 64, "SYN-ACK %d->%d" % [port, 0])
 					if tcp_check.has("path"):
 						_animate_path_traffic(tcp_check.path, "HTTP")
 					return {"success": true, "status_code": 200, "body": str(response), "error": ""}

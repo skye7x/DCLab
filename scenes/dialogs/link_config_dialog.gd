@@ -135,7 +135,7 @@ func _refresh_info(link) -> void:
 		return
 	var src = engine.get_device(link.source_device_id)
 	var dst = engine.get_device(link.dest_device_id)
-	_info_lbl.text = "%s:%s  ↔  %s:%s\nLink ID: %s" % [
+	_info_lbl.text = "%s:%s  <->  %s:%s\nLink ID: %s" % [
 		src.display_name if src else "?", link.source_interface_name,
 		dst.display_name if dst else "?", link.dest_interface_name,
 		link.id

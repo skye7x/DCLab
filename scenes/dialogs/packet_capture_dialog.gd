@@ -77,7 +77,7 @@ func _refresh() -> void:
 	_refresh_status()
 	_table.clear()
 	for p in PacketCapture.packets:
-		var line = "[%7.2fs]  %-15s → %-15s  %-5s  %4dB  %s" % [p.time, p.src, p.dst, p.protocol, p.size, p.info]
+		var line = "[%7.2fs]  %-15s -> %-15s  %-5s  %4dB  %s" % [p.time, p.src, p.dst, p.protocol, p.size, p.info]
 		_table.add_item(line)
 	if _table.item_count > 0:
 		_table.select(_table.item_count - 1)
