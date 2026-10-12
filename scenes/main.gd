@@ -6,6 +6,7 @@ var _workspace: Node2D = null
 var _toolbar: Control = null
 var _toolbox: Control = null
 var _inspector: Control = null
+var _tools_panel: Control = null
 var _bottom_panel: Control = null
 var _menu_bar: MenuBar = null
 var _is_in_workspace: bool = false
@@ -208,6 +209,12 @@ func show_workspace(project_name: String = "") -> void:
 	view_menu.add_item("Reset View", 3)
 	view_menu.add_separator()
 	view_menu.add_item("Auto Layout", 4)
+	view_menu.add_separator()
+	view_menu.add_item("Pointer Tool", 10)
+	view_menu.add_item("Connector Tool", 11)
+	view_menu.add_item("Delete Tool", 12)
+	view_menu.add_separator()
+	view_menu.add_item("Toggle Fullscreen (F11)", 5)
 	view_menu.id_pressed.connect(_on_view_menu_pressed)
 	_menu_bar.add_child(view_menu)
 	
@@ -296,6 +303,13 @@ func show_workspace(project_name: String = "") -> void:
 		_inspector.set_script(inspector_class)
 		_inspector.set("_workspace_ref", _workspace)
 		split_center_right.add_child(_inspector)
+
+	var tools_class = load("res://scenes/panels/tools_panel.gd")
+	if tools_class:
+		_tools_panel = PanelContainer.new()
+		_tools_panel.set_script(tools_class)
+		_tools_panel.set("_workspace_ref", _workspace)
+		split_center_right.add_child(_tools_panel)
 	
 	var console_class = load("res://scenes/panels/console_panel.gd")
 	if console_class:
@@ -398,6 +412,21 @@ func _on_view_menu_pressed(id: int) -> void:
 		4:
 			if _workspace and _workspace.has_method("auto_layout"):
 				_workspace.auto_layout()
+		5:
+			_toggle_fullscreen()
+		10, 11, 12:
+			var mode := id - 10
+			if _workspace and _workspace.has_method("set_tool_mode"):
+				_workspace.set_tool_mode(mode)
+
+func _toggle_fullscreen() -> void:
+	var win := get_window()
+	if not win:
+		return
+	if win.mode == Window.MODE_FULLSCREEN:
+		win.mode = Window.MODE_WINDOWED
+	else:
+		win.mode = Window.MODE_FULLSCREEN
 
 func _on_tools_menu_pressed(id: int) -> void:
 	match id:
@@ -446,9 +475,11 @@ func _show_instructions() -> void:
 3. Save your work via [i]File → Save[/i] - projects use the .dclabproj format.
 
 [b]HOW TO CONNECT TWO DEVICES[/b]
-• Right-click a device → [i]Connect[/i], then click the target device. A free interface is picked automatically.
+• Select a device, press [color=#ffcc66]C[/color], then click the target device. A free interface is picked automatically.
+• Or switch to the [i]Connector[/i] tool (Tools panel, right side): click source, then click target.
+• Or right-click a device → [i]Connect[/i], then click the target device.
 • Or select a device and press the [i]Connect Cable[/i] button in the Inspector (right panel).
-• Press [color=#ffcc66]Esc[/color] to cancel a pending connection.
+• Press [color=#ffcc66]Esc[/color] to cancel a pending connection or return to the Pointer tool.
 
 [b]NETWORKING & DHCP[/b]
 • Routers run a DHCP server by default. When you cable a PC/NAS to a switch or router, it receives an IP automatically (pool .100–.199).
@@ -476,6 +507,8 @@ func _show_instructions() -> void:
 [b]VIEW & SHORTCUTS[/b]
 [color=#ffcc66]Mouse wheel[/color] zoom · [color=#ffcc66]Middle-drag / Space+drag[/color] pan
 [color=#ffcc66]F[/color] zoom-to-fit · [color=#ffcc66]G[/color] grid · [color=#ffcc66]N[/color] snap · [color=#ffcc66]0[/color] reset view
+[color=#ffcc66]V[/color] pointer tool · [color=#ffcc66]C[/color] connect (select, press C, click target) · [color=#ffcc66]X[/color] delete tool
+[color=#ffcc66]F11[/color] fullscreen
 [color=#ffcc66]Ctrl+A[/color] select all · [color=#ffcc66]Ctrl+Z/Y[/color] undo/redo · [color=#ffcc66]Del[/color] delete
 [color=#ffcc66]Esc[/color] cancel connection / placement / deselect"""
 	rich.add_theme_font_size_override("normal_font_size", 13)

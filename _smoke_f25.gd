@@ -1,4 +1,4 @@
-extends Node
+﻿extends Node
 
 func _ready() -> void:
 	var engine: Node = SimEngine
@@ -8,7 +8,7 @@ func _ready() -> void:
 	engine.add_device(srv)
 
 	var os = srv.operating_system
-	var cp_class = load("res://terminal/command_processor.gd")
+	var cp_class = load("res://scenes/terminal/command_processor.gd")
 	var cp = cp_class.new("srv1", os)
 	cp.engine_ref = engine
 

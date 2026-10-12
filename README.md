@@ -13,7 +13,7 @@ ing
 - **Main scene**: `res://scenes/main.tscn`
 - **Devices**: `scenes/devices/` - RouterDevice, SwitchDevice, FirewallDevice, Computer/Server, StorageDevice
 - **Terminal**: `scenes/terminal/` - terminal_window.gd, terminal_tab.gd
-- **Commands**: `terminal/command_processor.gd` - 70+ terminal commands
+- **Commands**: `scenes/terminal/command_processor.gd` - 70+ terminal commands
 - **Dialogs**: `scenes/dialogs/` - configuration dialogs for devices/links/routes
 - **Pictograms**: single source of truth in `tools/pictograms.json` (24x24 grid, monoline). Run `python3 tools/gen_pictograms.py` to regenerate `scenes/devices/pictogram_shapes.gd` (Godot) and `dclab-web/components/pictogramShapes.js` (site). `DevicePictograms` renders them at any size.
 

@@ -106,8 +106,18 @@ func _input(event: InputEvent) -> void:
 
 	elif event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
+			# In connector/delete modes (or while a connection is pending) the
+			# workspace owns the click; the node must not start a drag.
+			var ws_mode_blocks_drag := false
+			if ws != null:
+				if ws.has_method("is_pointer_mode") and not ws.is_pointer_mode():
+					ws_mode_blocks_drag = true
+				elif "is_connecting" in ws and ws.is_connecting:
+					ws_mode_blocks_drag = true
 			if event.pressed and is_hit:
-				if event.double_click:
+				if ws_mode_blocks_drag:
+					device_clicked.emit(device_id, event)
+				elif event.double_click:
 					device_double_clicked.emit(device_id)
 				else:
 					# Start potential drag - wait for movement threshold

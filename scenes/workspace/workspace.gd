@@ -1,6 +1,9 @@
 extends Node2D
 
 signal view_changed(zoom: float)
+signal tool_mode_changed(mode: int)
+
+enum ToolMode { POINTER, CONNECTOR, DELETE }
 
 var device_nodes: Dictionary = {}
 var connection_lines: Dictionary = {}
@@ -8,6 +11,7 @@ var selection: Array = []
 var is_connecting: bool = false
 var connect_source_device_id: String = ""
 var connect_source_iface: String = ""
+var tool_mode: int = ToolMode.POINTER
 var grid_size: int = 32
 var show_grid: bool = true
 var snap_to_grid: bool = true
@@ -112,7 +116,11 @@ func _input(event: InputEvent) -> void:
 								cancel_connection()
 					else:
 						cancel_connection()
-				elif clicked_dev_id == "":
+				elif tool_mode == ToolMode.CONNECTOR and clicked_dev_id != "":
+					_begin_connect_from_device(clicked_dev_id)
+				elif tool_mode == ToolMode.DELETE and clicked_dev_id != "":
+					_delete_device_at(clicked_dev_id)
+				elif clicked_dev_id == "" and tool_mode == ToolMode.POINTER:
 					# Check if clicking near a connection line → open link config
 					var link_at = get_link_at_position(get_global_mouse_position())
 					if link_at:
@@ -157,6 +165,14 @@ func _input(event: InputEvent) -> void:
 			toggle_grid()
 		elif event.keycode == KEY_N and not event.ctrl_pressed:
 			toggle_snap()
+		elif event.keycode == KEY_C and not event.ctrl_pressed:
+			_handle_connect_key()
+		elif event.keycode == KEY_V and not event.ctrl_pressed:
+			set_tool_mode(ToolMode.POINTER)
+		elif event.keycode == KEY_X and not event.ctrl_pressed:
+			set_tool_mode(ToolMode.DELETE)
+		elif event.keycode == KEY_F11:
+			toggle_fullscreen()
 		elif event.keycode == KEY_S and event.ctrl_pressed:
 			if ProjectMgr: ProjectMgr.save_project()
 		elif event.keycode == KEY_O and event.ctrl_pressed:
@@ -182,6 +198,8 @@ func _input(event: InputEvent) -> void:
 				cancel_placement()
 			elif is_connecting:
 				cancel_connection()
+			elif tool_mode != ToolMode.POINTER:
+				set_tool_mode(ToolMode.POINTER)
 			else:
 				clear_selection()
 
@@ -320,6 +338,84 @@ func start_connection(device_id: String, iface_name: String) -> void:
 	connect_source_device_id = device_id
 	connect_source_iface = iface_name
 	queue_redraw()
+
+func set_tool_mode(mode: int) -> void:
+	if tool_mode == mode:
+		return
+	tool_mode = mode
+	if mode != ToolMode.CONNECTOR and is_connecting:
+		cancel_connection()
+	_set_cursor_for_mode()
+	if EventBus and EventBus.has_signal("tool_mode_changed"):
+		EventBus.tool_mode_changed.emit(mode)
+	queue_redraw()
+
+func get_tool_mode() -> int:
+	return tool_mode
+
+func is_pointer_mode() -> bool:
+	return tool_mode == ToolMode.POINTER
+
+func _set_cursor_for_mode() -> void:
+	var shape := Input.CURSOR_ARROW
+	match tool_mode:
+		ToolMode.CONNECTOR:
+			shape = Input.CURSOR_CROSS
+		ToolMode.DELETE:
+			shape = Input.CURSOR_FORBIDDEN
+		_:
+			shape = Input.CURSOR_ARROW
+	Input.set_default_cursor_shape(shape)
+
+func _handle_connect_key() -> void:
+	# Press C: if a connection is pending, cancel it; otherwise start one
+	# from the currently selected device, then pick a target by clicking it.
+	if is_connecting:
+		cancel_connection()
+		return
+	if selection.is_empty():
+		return
+	var dev_id: String = selection[0]
+	var dev = SimEngine.get_device(dev_id) if SimEngine else null
+	if not dev:
+		return
+	_begin_connect_from_device(dev_id)
+
+func _begin_connect_from_device(dev_id: String) -> void:
+	var dev = SimEngine.get_device(dev_id) if SimEngine else null
+	if not dev:
+		return
+	var iface := _find_free_interface(dev)
+	if iface == "":
+		# No free port and device can't grow ports - fall back to first iface.
+		if dev.network_interfaces.size() > 0:
+			iface = dev.network_interfaces.values()[0].iface_name
+		else:
+			return
+	select_device(dev_id)
+	start_connection(dev_id, iface)
+
+func _delete_device_at(dev_id: String) -> void:
+	if dev_id in selection:
+		deselect_device(dev_id)
+	var dev = SimEngine.get_device(dev_id) if SimEngine else null
+	if not dev:
+		return
+	var cmd_hist = load("res://commands/command_history.gd")
+	if cmd_hist and cmd_hist.RemoveDeviceCommand:
+		var conns = SimEngine.get_connections_for_device(dev_id) if SimEngine else []
+		ProjectMgr.execute_command(cmd_hist.RemoveDeviceCommand.new(dev, conns))
+	elif SimEngine:
+		SimEngine.remove_device(dev_id)
+
+func toggle_fullscreen() -> void:
+	var win = get_tree().get_root() as Window
+	if not win:
+		return
+	if win.mode == Window.MODE_FULLSCREEN:
+		win.mode = Window.MODE_WINDOWED
+	else:
+		win.mode = Window.MODE_FULLSCREEN
 
 func complete_connection(dest_device_id: String, dest_iface_name: String) -> void:
 	if is_connecting and SimEngine:
