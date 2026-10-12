@@ -469,8 +469,8 @@ func _on_sim_menu_pressed(id: int) -> void:
 func _show_instructions() -> void:
 	var win = Window.new()
 	win.title = "DCLab Instructions"
-	win.size = Vector2i(680, 560)
-	win.min_size = Vector2i(480, 400)
+	win.size = Vector2i(860, 700)
+	win.min_size = Vector2i(560, 420)
 
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 14)
@@ -482,50 +482,10 @@ func _show_instructions() -> void:
 
 	var rich = RichTextLabel.new()
 	rich.bbcode_enabled = true
-	rich.scroll_following = true
+	rich.focus_mode = Control.FOCUS_CLICK
+	rich.selection_enabled = true
 	rich.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	rich.text = """[b]GETTING STARTED[/b]
-1. Click a device in the left [color=#8fb6ff]Device Library[/color], then click on the canvas to place it.
-2. Right-click a device for its menu: [i]Configure…, Open Terminal, Configure IP, Connect, Rename, Duplicate, Power, Delete[/i].
-3. Save your work via [i]File → Save[/i] - projects use the .dclabproj format.
-
-[b]HOW TO CONNECT TWO DEVICES[/b]
-• Select a device, press [color=#ffcc66]C[/color], then click the target device. A free interface is picked automatically.
-• Or switch to the [i]Connector[/i] tool (Tools panel, right side): click source, then click target.
-• Or right-click a device → [i]Connect[/i], then click the target device.
-• Or select a device and press the [i]Connect Cable[/i] button in the Inspector (right panel).
-• Press [color=#ffcc66]Esc[/color] to cancel a pending connection or return to the Pointer tool.
-
-[b]NETWORKING & DHCP[/b]
-• Routers run a DHCP server by default. When you cable a PC/NAS to a switch or router, it receives an IP automatically (pool .100–.199).
-• Manually set an IP: right-click → [i]Configure IP[/i], or in a terminal: [color=#9fe0a0]ip addr add 192.168.10.50/24 dev eth0[/color].
-• Request DHCP from the terminal: [color=#9fe0a0]dhclient eth0[/color].
-• Changes made in the terminal appear instantly in the Inspector.
-
-[b]TERMINAL COMMANDS[/b]
-[color=#9fe0a0]help[/color]                          - full command list
-[color=#9fe0a0]ip[/color] / [color=#9fe0a0]ifconfig[/color]                   - show interfaces; [color=#9fe0a0]ip addr add <ip>/<cidr> dev <iface>[/color]
-[color=#9fe0a0]dhclient <iface>[/color]              - request a DHCP address
-[color=#9fe0a0]ping <ip> [-c n][/color]              - test connectivity
-[color=#9fe0a0]curl http://<ip>/[/color]              - fetch a web page from a server
-[color=#9fe0a0]route[/color]                          - routing table (routers)
-[color=#9fe0a0]service <name> start|stop[/color]      - manage http/ssh/database
-[color=#9fe0a0]ls, cd, cat, mkdir, touch, rm[/color]  - file system
-[color=#9fe0a0]shares / share add <name> <MB>[/color]  - NAS shares (on storage devices)
-[color=#9fe0a0]df[/color]                            - disk usage
-[color=#9fe0a0]Tab[/color]                           - autocomplete, [color=#9fe0a0]↑/↓[/color] history, [color=#9fe0a0]Ctrl+L[/color] clear
-
-[b]NAS / STORAGE[/b]
-• Right-click a NAS → [i]Shares…[/i] to create/remove shares; [i]Format…[/i] wipes data.
-• Open its terminal for [color=#9fe0a0]shares[/color], [color=#9fe0a0]share[/color], [color=#9fe0a0]df[/color] and normal network commands.
-
-[b]VIEW & SHORTCUTS[/b]
-[color=#ffcc66]Mouse wheel[/color] zoom · [color=#ffcc66]Middle-drag / Space+drag[/color] pan
-[color=#ffcc66]F[/color] zoom-to-fit · [color=#ffcc66]G[/color] grid · [color=#ffcc66]N[/color] snap · [color=#ffcc66]0[/color] reset view
-[color=#ffcc66]V[/color] pointer tool · [color=#ffcc66]C[/color] connect (select, press C, click target) · [color=#ffcc66]X[/color] delete tool
-[color=#ffcc66]F11[/color] fullscreen
-[color=#ffcc66]Ctrl+A[/color] select all · [color=#ffcc66]Ctrl+Z/Y[/color] undo/redo · [color=#ffcc66]Del[/color] delete
-[color=#ffcc66]Esc[/color] cancel connection / placement / deselect"""
+	rich.text = _instructions_text()
 	rich.add_theme_font_size_override("normal_font_size", 13)
 	margin.add_child(rich)
 
@@ -537,6 +497,83 @@ func _show_instructions() -> void:
 	win.close_requested.connect(win.queue_free)
 	add_child(win)
 	win.popup_centered()
+
+func _instructions_text() -> String:
+	return """[b]GETTING STARTED[/b]
+1. Click a device in the left [color=#8fb6ff]Device Library[/color] (Router, Switch, Firewall, PC, Server, NAS), then click the canvas to place it.
+2. Connect devices (see below), select one and press [color=#ffcc66]C[/color], click the target.
+3. Double-click a PC / Server / NAS to open its [color=#8fb6ff]terminal[/color] - type [color=#9fe0a0]help[/color] for the command list.
+4. Press [color=#8fb6ff]▶[/color] (Simulation menu) to run the network - packets animate along the cables.
+5. Save via [i]File → Save[/i] (Ctrl+S) - projects use the .dclabproj format.
+
+[b]TOOLS PANEL (right side, next to the Inspector)[/b]
+• [color=#ffcc66]Pointer (V)[/color] - click to select, drag to move devices, rubber-band on empty canvas selects many.
+• [color=#ffcc66]Connector (C)[/color] - click a source device, then a target device, to cable them.
+• [color=#ffcc66]Delete (X)[/color] - click a device to remove it (undo with Ctrl+Z).
+• [color=#ffcc66]Esc[/color] leaves any tool and returns to Pointer.
+
+[b]CONNECTING DEVICES - 4 WAYS[/b]
+• Select a device → press [color=#ffcc66]C[/color] → click the target device (free interface auto-picked).
+• [i]Connector[/i] tool: click source, then click target.
+• Right-click a device → [i]Connect[/i], then click the target.
+• Inspector (right) → [i]Connect Cable[/i] button.
+A free port is picked automatically; switches/routers grow a new port when full.
+[color=#ffcc66]Esc[/color] or right-click cancels a pending cable. Click an existing cable to edit its bandwidth / latency / packet loss.
+
+[b]RIGHT-CLICK MENU (devices)[/b]
+Configure… · Open Terminal · Configure IP · Connect · Rename… · Duplicate · Power On/Off · Shares… / Format… (NAS) · Start/Stop services · Delete.
+Right-click empty canvas: Select All · Zoom to Fit · Toggle Grid · Toggle Snap · Auto Layout.
+
+[b]SHORTCUTS - CANVAS & TOOLS[/b]
+[color=#ffcc66]C[/color] connect (select → C → click target)   [color=#ffcc66]V[/color] pointer tool   [color=#ffcc66]X[/color] delete tool
+[color=#ffcc66]Del / Backspace[/color] delete selection   [color=#ffcc66]Ctrl+A[/color] select all   [color=#ffcc66]Shift/Ctrl+click[/color] multi-select
+[color=#ffcc66]Ctrl+Z[/color] undo   [color=#ffcc66]Ctrl+Y[/color] redo   [color=#ffcc66]Ctrl+S[/color] save   [color=#ffcc66]Ctrl+O[/color] open project
+[color=#ffcc66]Ctrl+D[/color] delete selection   [color=#ffcc66]Ctrl+L[/color] toggle bottom log panel   [color=#ffcc66]Ctrl+T[/color] terminal on selected device
+[color=#ffcc66]Esc[/color] cancel cable / placement / leave tool / deselect
+
+[b]SHORTCUTS - VIEW[/b]
+[color=#ffcc66]Mouse wheel[/color] zoom at cursor   [color=#ffcc66]Middle-drag[/color] or [color=#ffcc66]Space+drag[/color] pan   [color=#ffcc66]Arrow keys[/color] pan
+[color=#ffcc66]+ / −[/color] zoom in/out   [color=#ffcc66]0[/color] reset view   [color=#ffcc66]F[/color] zoom to fit all devices
+[color=#ffcc66]G[/color] toggle grid   [color=#ffcc66]N[/color] toggle snap-to-grid   [color=#ffcc66]F11[/color] fullscreen on/off
+Toolbar (top): ▶ ⏸ ⏹ simulation, speed 0.5x–10x, zoom −/+/fit/home, grid & snap toggles, device/link counters.
+
+[b]TERMINAL[/b]
+Opened by double-click, right-click → Open Terminal, Ctrl+T, or the Inspector's Open Terminal button.
+Tabs: [color=#ffcc66]Ctrl+T[/color] new tab · [color=#ffcc66]Ctrl+W[/color] close tab · [color=#ffcc66]Ctrl+Shift+W[/color] close window · [color=#ffcc66]Ctrl+Tab / Ctrl+Shift+Tab[/color] next/prev tab · [color=#ffcc66]Ctrl+PgUp/PgDn[/color] cycle.
+Input: [color=#ffcc66]Tab[/color] autocomplete · [color=#ffcc66]↑/↓[/color] history · [color=#ffcc66]Ctrl+L[/color] clear screen. [i]Logs[/i] button shows simulator events for the device.
+[color=#8fb6ff]ssh <user>@<ip>[/color] jumps to another device's shell - type [color=#9fe0a0]exit[/color] to return to the previous session.
+
+[color=#8fb6ff][b]TERMINAL COMMANDS - COMPLETE LIST[/b][/color]
+[color=#9fe0a0][b]Files[/b][/color]: help · clear · pwd · ls [dir] · cd <dir> · cat <file> · mkdir <dir> · touch <file> · rm <path> · echo <text> · tail <file>
+[color=#9fe0a0][b]System[/b][/color]: whoami · hostname · ps · kill <pid> · df · mount · env · journalctl
+[color=#9fe0a0][b]Users[/b][/color]: useradd <name> · userdel <name> · passwd <name> <pass> · su <name> [pass] · users · groups
+[color=#9fe0a0][b]Network[/b][/color]: ip · ifconfig · ip addr add <ip>/<cidr> dev <iface> · ip addr del dev <iface> · ping <ip> [-c n] · traceroute <ip> · arp · nat
+[color=#9fe0a0][b]DNS[/b][/color]: nslookup <host> · dig <host> [type] · dns add <host> <ip> · dns rm <host> · dns list   (dns * runs on a DNS server)
+[color=#9fe0a0][b]DHCP[/b][/color]: dhclient <iface>   (routers serve DHCP automatically on link-up)
+[color=#9fe0a0][b]Services[/b][/color]: service http|ssh|database|email|ftp <start|stop|restart|status> · curl http://<ip>/ · email send <to> <subj> <body> · email list
+[color=#9fe0a0][b]NAS / storage[/b][/color]: shares · share add <name> <MB> · share rm <name> · mount <share>
+[color=#9fe0a0][b]Shell[/b][/color]: ssh <user>@<ip> · exit · alias <name>=<cmd> · unalias <name> · export VAR=value · unset VAR · apt · crontab · pcap
+
+[b]NETWORKING BASICS[/b]
+• Routers run DHCP (pool .100–.199): cable a PC to a switch/router and it gets an IP automatically.
+• Manual IP: right-click → [i]Configure IP[/i], or terminal [color=#9fe0a0]ip addr add 192.168.10.50/24 dev eth0[/color], then [color=#9fe0a0]dhclient eth0[/color] to request DHCP.
+• Routers build routing tables ([color=#9fe0a0]route[/color]); firewalls filter traffic; DNS servers resolve names ([color=#9fe0a0]nslookup[/color]).
+• The Inspector (right panel) shows live device state: hardware, OS, services, interfaces, IP - refreshes while the sim runs.
+• [i]Tools → Packet Capture…[/i] records traffic; [i]Tools → Subnet Calculator…[/i] computes ranges/masks.
+
+[b]NAS / STORAGE[/b]
+Right-click a NAS → [i]Shares…[/i] to create/remove shares ([color=#9fe0a0]share add photos 500[/color] in its terminal too); [i]Format…[/i] wipes all data.
+Its terminal also has [color=#9fe0a0]shares[/color], [color=#9fe0a0]df[/color], [color=#9fe0a0]mount[/color] and normal network commands.
+
+[b]PROJECTS & MENUS[/b]
+File: New Project · Open (Ctrl+O) · Save (Ctrl+S) · Save As… · Exit. Edit: Undo/Redo/Delete/Select All.
+View: Grid · Snap · Zoom to Fit · Reset View · Auto Layout · Pointer/Connector/Delete tools · Fullscreen (F11).
+Simulation: Start/Pause/Stop. Tools: Subnet Calculator, Packet Capture. Help: this window, About (shows version).
+
+[b]HINTS & VERSION[/b]
+Small blue hint toasts appear in the bottom-right as you learn the app. Closing a hint with × dismisses it [i]permanently[/i] - it will never appear again.
+The version (e.g. [color=#8fb6ff]v0.4.0[/color]) is shown in the toolbar and Help → About. On launch DCLab checks GitHub for a newer [color=#8fb6ff]version.json[/color] and offers an update dialog when one exists."""
+
 
 func _process(delta: float) -> void:
 	if _is_in_workspace and _toolbar and _toolbar.has_method("update_status"):
