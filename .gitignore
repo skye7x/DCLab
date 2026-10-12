@@ -44,3 +44,5 @@ _f[0-9]*_out.txt
 _f[0-9]*_err.txt
 log_output.txt
 temp_git_log.txt
+
+export/
