@@ -1,6 +1,6 @@
 extends Node
 ## Shows one-shot hints as toasts in the bottom-right corner.
-## Closing a hint with × saves the dismissal to user://hints.cfg —
+## Closing a hint with × saves the dismissal to user://hints.cfg -
 ## a dismissed hint NEVER appears again.
 
 const SAVE_PATH := "user://hints.cfg"
@@ -37,7 +37,7 @@ const HINTS := [
 	},
 	{
 		"id": "projects",
-		"text": "Save your work with Ctrl+S — projects use the .dclabproj format. Help > Instructions has every shortcut.",
+		"text": "Save your work with Ctrl+S - projects use the .dclabproj format. Help > Instructions has every shortcut.",
 		"check": "has_links",
 	},
 ]

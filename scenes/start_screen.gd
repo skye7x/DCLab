@@ -90,7 +90,7 @@ func _ready() -> void:
 	vbox.add_child(_spacer(20))
 
 	var version = Label.new()
-	version.text = AppInfo.display_version() + "  ·  scroll to zoom, middle-drag to pan the canvas"
+	version.text = AppInfo.display_version()
 	version.add_theme_font_size_override("font_size", 11)
 	version.add_theme_color_override("font_color", Color("#6b6b6b"))
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
