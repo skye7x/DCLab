@@ -529,6 +529,7 @@ A free port is picked automatically; switches/routers grow a new port when full.
 [b]RIGHT-CLICK MENU (devices)[/b]
 Configure… · Open Terminal · Configure IP · Connect · Rename… · Duplicate · Power On/Off · Shares… / Format… (NAS) · Start/Stop services · Delete.
 Right-click empty canvas: Select All · Zoom to Fit · Toggle Grid · Toggle Snap · Auto Layout.
+Right-click a cable: Disconnect… removes it (undo with Ctrl+Z).
 
 [b]SHORTCUTS - CANVAS & TOOLS[/b]
 [color=#ffcc66]C[/color] connect (select -> C -> click target)   [color=#ffcc66]V[/color] pointer tool   [color=#ffcc66]X[/color] delete tool

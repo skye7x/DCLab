@@ -2,6 +2,7 @@ extends Node
 
 var _popup: PopupMenu
 var _target_device_id: String = ""
+var _target_link_id: String = ""
 var _workspace_ref = null
 
 func _ready() -> void:
@@ -11,6 +12,7 @@ func _ready() -> void:
 
 func show_device_menu(device_id: String, screen_pos: Vector2) -> void:
 	_target_device_id = device_id
+	_target_link_id = ""
 	_popup.clear()
 
 	var tree = Engine.get_main_loop()
@@ -52,6 +54,7 @@ func show_device_menu(device_id: String, screen_pos: Vector2) -> void:
 
 func show_workspace_menu(screen_pos: Vector2) -> void:
 	_target_device_id = ""
+	_target_link_id = ""
 	_popup.clear()
 	_popup.add_item("Select All", 20)
 	_popup.add_item("Zoom to Fit", 21)
@@ -59,6 +62,14 @@ func show_workspace_menu(screen_pos: Vector2) -> void:
 	_popup.add_item("Toggle Snap to Grid", 23)
 	_popup.add_separator()
 	_popup.add_item("Auto Layout", 24)
+	_popup.position = Vector2i(int(screen_pos.x), int(screen_pos.y))
+	_popup.popup()
+
+func show_link_menu(link_id: String, screen_pos: Vector2) -> void:
+	_target_device_id = ""
+	_target_link_id = link_id
+	_popup.clear()
+	_popup.add_item("Disconnect…", 30)
 	_popup.position = Vector2i(int(screen_pos.x), int(screen_pos.y))
 	_popup.popup()
 
@@ -164,6 +175,28 @@ func _on_menu_item_selected(id: int) -> void:
 		24: # Auto Layout
 			if _workspace_ref and _workspace_ref.has_method("auto_layout"):
 				_workspace_ref.auto_layout()
+		30: # Disconnect cable
+			_disconnect_link(_target_link_id)
+
+func _disconnect_link(link_id: String) -> void:
+	if link_id == "":
+		return
+	var tree = Engine.get_main_loop()
+	var engine = tree.root.get_node_or_null("SimEngine") if tree and tree.root else null
+	if not engine:
+		return
+	var link = null
+	for l in engine.connections:
+		if l.id == link_id:
+			link = l
+			break
+	if link == null:
+		return
+	var cmd_hist = load("res://commands/command_history.gd")
+	if ProjectMgr and cmd_hist and cmd_hist.RemoveConnectionCommand:
+		ProjectMgr.execute_command(cmd_hist.RemoveConnectionCommand.new(link))
+	else:
+		engine.remove_connection(link_id)
 
 func _open_terminal(device_id: String) -> void:
 	var tree = Engine.get_main_loop()

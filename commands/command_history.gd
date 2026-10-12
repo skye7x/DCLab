@@ -70,6 +70,12 @@ static func _restore_interface_links(engine, link: EthernetLink) -> void:
 		dst_dev.network_interfaces[link.dest_interface_name].is_linked = true
 		dst_dev.network_interfaces[link.dest_interface_name].link = link
 
+static func _emit_created(link: EthernetLink) -> void:
+	var tree = Engine.get_main_loop()
+	var bus = tree.root.get_node_or_null("/root/EventBus") if tree and tree.root else null
+	if bus and bus.has_signal("connection_created"):
+		bus.connection_created.emit(link)
+
 class AddDeviceCommand extends Command:
 	var device_data: Dictionary
 	var device_id: String
@@ -169,6 +175,7 @@ class AddConnectionCommand extends Command:
 			link.from_dict(link_data)
 			engine.connections.append(link)
 			CommandHistory._restore_interface_links(engine, link)
+			CommandHistory._emit_created(link)
 			
 	func undo():
 		var engine = CommandHistory._get_engine()
@@ -202,6 +209,7 @@ class RemoveConnectionCommand extends Command:
 			link.from_dict(link_data)
 			engine.connections.append(link)
 			CommandHistory._restore_interface_links(engine, link)
+			CommandHistory._emit_created(link)
 
 class RenameDeviceCommand extends Command:
 	var device_id: String

@@ -149,7 +149,11 @@ func _input(event: InputEvent) -> void:
 						select_device(clicked_dev_id)
 						_context_menu.show_device_menu(clicked_dev_id, event.global_position)
 					else:
-						_context_menu.show_workspace_menu(event.global_position)
+						var link_at = get_link_at_position(get_global_mouse_position())
+						if link_at and _context_menu.has_method("show_link_menu"):
+							_context_menu.show_link_menu(link_at.id, event.global_position)
+						else:
+							_context_menu.show_workspace_menu(event.global_position)
 
 	elif event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_DELETE or event.keycode == KEY_BACKSPACE:
