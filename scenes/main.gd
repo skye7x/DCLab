@@ -480,6 +480,10 @@ func _show_instructions() -> void:
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	win.add_child(margin)
 
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	margin.add_child(vbox)
+
 	var rich = RichTextLabel.new()
 	rich.bbcode_enabled = true
 	rich.focus_mode = Control.FOCUS_CLICK
@@ -487,12 +491,12 @@ func _show_instructions() -> void:
 	rich.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	rich.text = _instructions_text()
 	rich.add_theme_font_size_override("normal_font_size", 13)
-	margin.add_child(rich)
+	vbox.add_child(rich)
 
 	var close_btn = Button.new()
 	close_btn.text = " Close "
 	close_btn.pressed.connect(win.queue_free)
-	margin.add_child(close_btn)
+	vbox.add_child(close_btn)
 
 	win.close_requested.connect(win.queue_free)
 	add_child(win)
