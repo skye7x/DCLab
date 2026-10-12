@@ -62,7 +62,10 @@ func _rebuild() -> void:
 		lbl.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9))
 		row.add_child(lbl)
 		var rm = Button.new()
-		rm.text = "✕"
+		var rm_tex = load("res://resIcons/x.svg")
+		if rm_tex:
+			rm.icon = rm_tex
+		rm.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		rm.custom_minimum_size = Vector2(28, 24)
 		var r_idx = idx
 		rm.pressed.connect(func():

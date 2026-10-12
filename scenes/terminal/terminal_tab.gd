@@ -38,7 +38,7 @@ var _prompt_user: Label
 var _prompt_sep: Label
 var _prompt_path: Label
 var _prompt_sym: Label
-var _status_dot: Label
+var _status_dot: TextureRect
 var _status_text: Label
 var _hint: Label
 
@@ -209,8 +209,12 @@ func _build_ui() -> void:
 	T.style_label(_hint, T.MUTE, T.FONT_SIZE_SMALL)
 	frow.add_child(_hint)
 
-	_status_dot = Label.new()
-	T.style_label(_status_dot, T.OK, T.FONT_SIZE_SMALL)
+	_status_dot = TextureRect.new()
+	_status_dot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_status_dot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_status_dot.custom_minimum_size = Vector2(10, 10)
+	_status_dot.texture = load("res://resIcons/dot_on.svg")
+	_status_dot.modulate = T.OK
 	frow.add_child(_status_dot)
 	_status_text = Label.new()
 	T.style_label(_status_text, T.BODY, T.FONT_SIZE_SMALL)
@@ -411,8 +415,8 @@ func _refresh_status() -> void:
 	var dev = _device(device_id)
 	var on: bool = dev != null and dev.is_powered_on
 	# Shape + colour, so state never relies on colour alone.
-	_status_dot.text = "●" if on else "○"
-	_status_dot.add_theme_color_override("font_color", T.OK if on else T.WARN)
+	_status_dot.texture = load("res://resIcons/dot_on.svg" if on else "res://resIcons/dot_off.svg")
+	_status_dot.modulate = T.OK if on else T.WARN
 	var label := get_title()
 	if not _sessions.is_empty():
 		label += "  via ssh from " + _device_name(_sessions[0].device_id)

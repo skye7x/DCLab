@@ -28,15 +28,15 @@ func _ready() -> void:
 	m.add_child(hbox)
 	add_child(m)
 
-	play_btn = _make_btn("▶", "Start simulation")
+	play_btn = _make_icon_btn("play", "Start simulation")
 	play_btn.pressed.connect(func(): SimEngine.start_simulation())
 	hbox.add_child(play_btn)
 
-	pause_btn = _make_btn("⏸", "Pause simulation")
+	pause_btn = _make_icon_btn("pause", "Pause simulation")
 	pause_btn.pressed.connect(func(): SimEngine.pause_simulation())
 	hbox.add_child(pause_btn)
 
-	stop_btn = _make_btn("⏹", "Stop simulation")
+	stop_btn = _make_icon_btn("stop", "Stop simulation")
 	stop_btn.pressed.connect(func(): SimEngine.stop_simulation())
 	hbox.add_child(stop_btn)
 
@@ -89,23 +89,23 @@ func _ready() -> void:
 	zoom_in_btn.pressed.connect(func(): _cam_op("zoom_in"))
 	hbox.add_child(zoom_in_btn)
 
-	var fit_btn = _make_btn("⤢", "Zoom to fit (F)")
+	var fit_btn = _make_icon_btn("fit", "Zoom to fit (F)")
 	fit_btn.pressed.connect(func(): _ws_op("zoom_to_fit"))
 	hbox.add_child(fit_btn)
 
-	var home_btn = _make_btn("⌂", "Reset view (0)")
+	var home_btn = _make_icon_btn("home", "Reset view (0)")
 	home_btn.pressed.connect(func(): _cam_op("reset_view"))
 	hbox.add_child(home_btn)
 
 	hbox.add_child(VSeparator.new())
 
-	grid_btn = _make_btn("▦", "Toggle grid (G)")
+	grid_btn = _make_icon_btn("grid", "Toggle grid (G)")
 	grid_btn.toggle_mode = true
 	grid_btn.button_pressed = true
 	grid_btn.toggled.connect(_on_grid_toggled)
 	hbox.add_child(grid_btn)
 
-	snap_btn = _make_btn("🧲", "Toggle snap to grid (N)")
+	snap_btn = _make_icon_btn("magnet", "Toggle snap to grid (N)")
 	snap_btn.toggle_mode = true
 	snap_btn.button_pressed = true
 	snap_btn.toggled.connect(_on_snap_toggled)
@@ -116,6 +116,15 @@ func _make_btn(text: String, tip: String) -> Button:
 	b.text = text
 	b.tooltip_text = tip
 	b.custom_minimum_size = Vector2(30, 26)
+	return b
+
+func _make_icon_btn(icon_name: String, tip: String) -> Button:
+	var b = _make_btn("", tip)
+	var tex = load("res://resIcons/%s.svg" % icon_name)
+	if tex:
+		b.icon = tex
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.expand_icon = false
 	return b
 
 func _cam_op(op: String) -> void:

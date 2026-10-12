@@ -61,7 +61,7 @@ func add_console_message(text: String, color: Color = Color.WHITE) -> void:
 	_console_output.append_text("[color=#" + color.to_html(false) + "]" + text + "[/color]\n")
 
 func _on_command_executed(description: String) -> void:
-	add_console_message("✓ " + description, Color(0.5, 0.85, 0.6))
+	add_console_message("[img=14x14]res://resIcons/check.svg[/img] " + description, Color(0.5, 0.85, 0.6))
 
 func _on_log_created(device_id: String, entry: Dictionary) -> void:
 	var color = Color(0.85, 0.85, 0.85)

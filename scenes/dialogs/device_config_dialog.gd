@@ -232,12 +232,15 @@ func _rebuild() -> void:
 		for rule in dev.rules:
 			var row = HBoxContainer.new()
 			var rl = Label.new()
-			rl.text = "%d. %s %s %s→%s%s" % [idx, str(rule.action).to_upper(), rule.protocol, rule.src_ip, rule.dst_ip, ("" if int(rule.dst_port) == -1 else ":" + str(rule.dst_port))]
+			rl.text = "%d. %s %s %s->%s%s" % [idx, str(rule.action).to_upper(), rule.protocol, rule.src_ip, rule.dst_ip, ("" if int(rule.dst_port) == -1 else ":" + str(rule.dst_port))]
 			rl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(rl)
 			if idx > 0:
 				var rm = Button.new()
-				rm.text = "✕"
+				var rm_tex = load("res://resIcons/x.svg")
+				if rm_tex:
+					rm.icon = rm_tex
+				rm.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				rm.custom_minimum_size = Vector2(26, 24)
 				var r_idx = idx
 				rm.pressed.connect(func():
@@ -392,7 +395,7 @@ func _rebuild() -> void:
 		_section_header("ARP TABLE")
 		var arp_entries = dev.arp_table.get_all_entries()
 		for arp_ip in arp_entries:
-			_content.add_child(_field_label("  %s → %s" % [arp_ip, arp_entries[arp_ip]]))
+			_content.add_child(_field_label("  %s -> %s" % [arp_ip, arp_entries[arp_ip]]))
 
 	_content.add_child(HSeparator.new())
 

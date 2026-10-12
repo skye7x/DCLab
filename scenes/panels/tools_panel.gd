@@ -28,9 +28,9 @@ func _ready() -> void:
 	title.add_theme_color_override("font_color", Color("#a1a1a1"))
 	vbox.add_child(title)
 
-	_btn_pointer = _make_mode_btn("➤  Pointer", "Select / move devices (V)", MODE_POINTER)
-	_btn_connector = _make_mode_btn("🔗  Connector", "Click source, then target to cable them (C)", MODE_CONNECTOR)
-	_btn_delete = _make_mode_btn("✖  Delete", "Click a device to remove it (X)", MODE_DELETE)
+	_btn_pointer = _make_mode_btn("pointer", "Pointer", "Select / move devices (V)", MODE_POINTER)
+	_btn_connector = _make_mode_btn("link", "Connector", "Click source, then target to cable them (C)", MODE_CONNECTOR)
+	_btn_delete = _make_mode_btn("trash", "Delete", "Click a device to remove it (X)", MODE_DELETE)
 
 	vbox.add_child(_btn_pointer)
 	vbox.add_child(_btn_connector)
@@ -58,12 +58,17 @@ func _ready() -> void:
 
 	_sync_from_workspace()
 
-func _make_mode_btn(text: String, tip: String, mode: int) -> Button:
+func _make_mode_btn(icon_name: String, text: String, tip: String, mode: int) -> Button:
 	var b := Button.new()
+	var tex = load("res://resIcons/%s.svg" % icon_name)
+	if tex:
+		b.icon = tex
 	b.text = text
 	b.tooltip_text = tip
 	b.toggle_mode = true
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.add_theme_constant_override("icon_separation", 8)
 	b.custom_minimum_size = Vector2(0, 30)
 	b.pressed.connect(_on_mode_pressed.bind(mode))
 	return b
