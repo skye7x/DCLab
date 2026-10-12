@@ -167,6 +167,8 @@ func show_start_screen() -> void:
 		_start_screen.new_project_requested.connect(_on_new_project)
 		_start_screen.open_project_requested.connect(_on_open_project)
 		_start_screen.open_sample_requested.connect(_on_open_sample)
+		if _start_screen.has_signal("instructions_requested"):
+			_start_screen.instructions_requested.connect(_show_instructions)
 		_start_screen.set_anchors_preset(15)  # Control.PRESET_FULL_RECT
 
 func show_workspace(project_name: String = "") -> void:
