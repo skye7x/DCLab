@@ -21,6 +21,7 @@ desktop.ini
 
 # Exports
 export/
+exports/
 *.pck
 *.zip
 
