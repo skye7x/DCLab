@@ -1,5 +1,8 @@
 extends Control
 
+const AppInfo = preload("res://core/app_info.gd")
+const UPDATE_URL := "https://raw.githubusercontent.com/skye7x/DCLab/main/version.json"
+
 var _start_screen: Control = null
 var _app_container: Control = null
 var _workspace: Node2D = null
@@ -10,10 +13,14 @@ var _tools_panel: Control = null
 var _bottom_panel: Control = null
 var _menu_bar: MenuBar = null
 var _is_in_workspace: bool = false
+var _version_label: Label = null
+var _http: HTTPRequest = null
 
 func _ready() -> void:
 	_apply_dark_theme()
+	get_window().title = "DCLab " + AppInfo.display_version()
 	show_start_screen()
+	_check_for_update()
 
 func _flat_sb(color: Color, radius: int = 6, border_col: Color = Color.TRANSPARENT, border_w: int = 0) -> StyleBoxFlat:
 	var sb = StyleBoxFlat.new()
@@ -243,7 +250,7 @@ func show_workspace(project_name: String = "") -> void:
 		else:
 			var dlg = AcceptDialog.new()
 			dlg.title = "About DCLab"
-			dlg.dialog_text = "DCLab - Interactive IT Infrastructure Simulator\nVersion 0.1.0\nEducational sandbox simulation application."
+			dlg.dialog_text = "DCLab - Interactive IT Infrastructure Simulator\nVersion %s\nEducational sandbox simulation application.\nhttps://github.com/skye7x/DCLab" % AppInfo.display_version()
 			add_child(dlg)
 			dlg.popup_centered()
 	)
@@ -254,6 +261,14 @@ func show_workspace(project_name: String = "") -> void:
 		_toolbar = HBoxContainer.new()
 		_toolbar.set_script(toolbar_class)
 		_app_container.add_child(_toolbar)
+
+	_version_label = Label.new()
+	_version_label.text = AppInfo.display_version()
+	_version_label.add_theme_font_size_override("font_size", 11)
+	_version_label.add_theme_color_override("font_color", Color("#6f6f6f"))
+	_version_label.tooltip_text = "DCLab version (Help → About)"
+	_version_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_toolbar.add_child(_version_label)
 	
 	var split_vertical = VSplitContainer.new()
 	split_vertical.size_flags_vertical = SIZE_EXPAND_FILL
@@ -526,3 +541,42 @@ func _show_instructions() -> void:
 func _process(delta: float) -> void:
 	if _is_in_workspace and _toolbar and _toolbar.has_method("update_status"):
 		_toolbar.update_status()
+
+# ----------------------------------------------------------------------------
+# Update check: compares gdVer.dclver (local) with version.json on GitHub.
+# Shown on every launch while the versions differ.
+# ----------------------------------------------------------------------------
+
+func _check_for_update() -> void:
+	_http = HTTPRequest.new()
+	_http.timeout = 8.0
+	add_child(_http)
+	_http.request_completed.connect(_on_update_response)
+	var err = _http.request(UPDATE_URL)
+	if err != OK:
+		_http.queue_free()
+		_http = null
+
+func _on_update_response(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if _http:
+		_http.queue_free()
+		_http = null
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		return
+	var data = JSON.parse_string(body.get_string_from_utf8())
+	if not (data is Dictionary) or not data.has("version"):
+		return
+	var remote: String = str(data["version"]).strip_edges()
+	var local: String = AppInfo.version()
+	if remote == "" or remote == local:
+		return
+	_show_update_banner(remote, local, str(data.get("url", "https://github.com/skye7x/DCLab")))
+
+func _show_update_banner(remote: String, local: String, url: String) -> void:
+	var dlg = AcceptDialog.new()
+	dlg.title = "Update available"
+	dlg.dialog_text = "A new version of DCLab is available!\n\nYou have:  %s\nLatest:    %s\n\nDownload: %s" % [AppInfo.display_version(), "v" + remote, url]
+	dlg.get_ok_button().text = "Open GitHub"
+	dlg.confirmed.connect(OS.shell_open.bind(url))
+	add_child(dlg)
+	dlg.popup_centered()

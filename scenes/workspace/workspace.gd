@@ -27,6 +27,7 @@ var _context_menu: Node
 
 func _ready() -> void:
 	name = "Workspace"
+	add_to_group("workspace")
 
 	_grid_renderer = GridRenderer.new()
 	_grid_renderer.grid_size = grid_size

@@ -27,6 +27,7 @@ SimTime="*res://core/simulation/simulation_time.gd"
 SimLogger="*res://core/logging/sim_logger.gd"
 SimEngine="*res://core/simulation/simulation_engine.gd"
 ProjectMgr="*res://projects/project_manager.gd"
+Hints="*res://core/hint_manager.gd"
 
 [display]
 
